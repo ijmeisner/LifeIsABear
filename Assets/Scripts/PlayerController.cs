@@ -7,6 +7,13 @@ using System.Collections;
 
 public class PlayerController : MonoBehaviour
 {
+	// TODO
+	// add animation plays once animations are available
+	// add item and ability and item usage once available
+	// decide input controls
+	// move non physics stuff (like update times) to update
+	// make sure Destructable is a tag and added to destructables
+	// make attribute dependant stuff dependant on attributes once added
 
 	// Make 'Q' use item and 'E' use ability, 'F' and 'R' change them as defaults?
 	// Right click for use item and left click for use ability, mouse wheel change them as optional mouse?
@@ -19,6 +26,8 @@ public class PlayerController : MonoBehaviour
 	public float backwardsModifier; // # times slower than forwardSpeed
 	public float jumpModifier;
 	public float jumpDelay; // can change to when contacting ground, but I think there should be longer delay for a bear
+	public float attackRange; // get this from attribute once attribute class is available
+	public float hitForce; // Your strength, get this from attribute once attribute class is available
 
 	private Vector3 m_playerMovement;
 	private float m_moveX;
@@ -45,10 +54,15 @@ public class PlayerController : MonoBehaviour
 
 		if(Input.GetButtonDown("Fire1"))
 		{
-			useAbility(m_selectedAbility);
+			playerAttack();
 		}
 
 		if(Input.GetButtonDown("Fire2"))
+		{
+			useAbility(m_selectedAbility);
+		}
+
+		if(Input.GetButtonDown("Fire3"))
 		{
 			useItem(m_selectedItem);
 		}
@@ -100,10 +114,10 @@ public class PlayerController : MonoBehaviour
 		switch(ability)
 		{
 			case 1:
-				// ability function go here
+				// ability function go here from ability class
 				break;
 			case 2:
-				// ability function go here
+				// ability function go here from ability class
 				break;
 			default:
 				break;
@@ -115,13 +129,32 @@ public class PlayerController : MonoBehaviour
 		switch(item)
 		{
 			case 1:
-				// item function go here
+				// item function go here from item class
 				break;
 			case 2:
-				// item function go here
+				// item function go here from item class
 				break;
 			default:
 				break;
+		}
+	}
+
+	void playerAttack()
+	{
+		RaycastHit objectHit;
+		// Swipe animation or however visual is wanted
+		if(Physics.SphereCast(transform.position,
+		                              attackRange,
+		                              transform.TransformDirection(Vector3.forward),
+		                              out objectHit,
+		                              attackRange))
+		{
+			objectHit.rigidbody.AddForce(objectHit.normal*hitForce*-1);
+			if(objectHit.transform.gameObject.tag == "Destructible")
+			{
+				// play destroyed animation
+				StartCoroutine(GameController.animDestroy(objectHit.transform.gameObject)); // delayed destroy
+			}
 		}
 	}
 
