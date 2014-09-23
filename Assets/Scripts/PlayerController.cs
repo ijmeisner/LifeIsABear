@@ -11,13 +11,12 @@ public class PlayerController : MonoBehaviour
 	// add animation plays once animations are available
 	// add item and ability and item usage once available
 	// decide input controls
-	// move non physics stuff (like update times) to update
-	// make sure Destructable is a tag and added to destructables
 	// make attribute dependant stuff dependant on attributes once added
 
-	// Make 'Q' use item and 'E' use ability, 'F' and 'R' change them as defaults?
-	// Right click for use item and left click for use ability, mouse wheel change them as optional mouse?
-	// Use Edit->ProjectSettings->Input to change, and maybe we will make configurable
+	// Ideas for control scheme
+	// left click attacks, right click uses ability or item, whichever is selected
+	// Make 'Q' select item (and change which if item is selected) and 'E' select/change ability
+	// Use Edit->ProjectSettings->Input to change, and maybe we will make configurable at some point
 
 	// Item/Ability value means none; for when you don't have one yet otherwise cycle to nonzero values
 
@@ -25,9 +24,12 @@ public class PlayerController : MonoBehaviour
 	public float sideSpeed;
 	public float backwardsModifier; // # times slower than forwardSpeed
 	public float jumpModifier;
+	public float sprintModifier;
 	public float jumpDelay; // can change to when contacting ground, but I think there should be longer delay for a bear
+
 	public float attackRange; // get this from attribute once attribute class is available
 	public float hitForce; // Your strength, get this from attribute once attribute class is available
+	public float stamina; // sprint duraction, get this from attribute once attribute class is available
 
 	private Vector3 m_playerMovement;
 	private float m_moveX;
@@ -35,17 +37,34 @@ public class PlayerController : MonoBehaviour
 	private float m_jumpTime;
 	private int m_selectedAbility;
 	private int m_selectedItem;
+	private bool isSprinting;
 
 	void Start()
 	{
 		m_jumpTime = 0;
 		m_selectedItem = 0;
 		m_selectedAbility = 0;
+		isSprinting = false;
 	}
 	
 	void FixedUpdate () // decide controls to use and edit this when agreed upon
 	{
 		movePlayer();
+
+		/*
+		if(Input.GetButton("Sprint"))
+		{
+			isSprinting = true;
+			// StartCoroutine("cameraWobble");
+			stamina -= Time.deltaTime; // or a factor of the time, depending how stamina is implemented
+		}
+
+		if(Input.GetButtonUp("Sprint"))
+		{
+			isSprinting = false;
+			// StopCoroutine("cameraWobble");
+		}
+		*/
 
 		if(Input.GetButtonDown("Jump"))
 		{
@@ -93,6 +112,10 @@ public class PlayerController : MonoBehaviour
 		if(m_moveY < 0)
 		{
 			m_moveY /= backwardsModifier;
+		}
+		if(isSprinting)
+		{
+			m_moveX *= sprintModifier;
 		}
 		
 		m_playerMovement.Set(m_moveX, 0.0f, m_moveY);
@@ -153,7 +176,7 @@ public class PlayerController : MonoBehaviour
 			if(objectHit.transform.gameObject.tag == "Destructible")
 			{
 				// play destroyed animation
-				StartCoroutine(GameController.animDestroy(objectHit.transform.gameObject)); // delayed destroy
+				StartCoroutine(GameController.animDestroy(objectHit.transform.gameObject, 1.0f)); // delayed destroy
 			}
 		}
 	}

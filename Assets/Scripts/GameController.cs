@@ -9,11 +9,7 @@ public class GameController : MonoBehaviour {
 
 	// TODO
 	// remove Application.Quit in Update once menu is added
-	// alter destroyTime to be grabbed from object?
-	// fix the animDestroy delay because it isn't working
 
-	public static float destroyTime = 2.0f;
-	
 	void Start()
 	{
 		// Attempt to cap framerate
@@ -30,10 +26,12 @@ public class GameController : MonoBehaviour {
 		}
 	}
 
-	public static IEnumerator animDestroy(Object destroyObj)
+	public static IEnumerator animDestroy(Object destroyObj, float destroyTime)
 	{
-		for(float i=0.0f; i<=destroyTime; i+=Time.deltaTime);
+		for(; destroyTime >= 0; destroyTime -= Time.deltaTime)
+		{
+			yield return null;
+		}
 		Destroy(destroyObj);
-		yield return null;
 	}
 }
