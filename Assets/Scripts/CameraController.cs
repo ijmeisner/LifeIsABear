@@ -7,28 +7,39 @@ using System.Collections;
 
 public class CameraController : MonoBehaviour {
 
-	// TODO
-	// figure out why localeulerangles isn't setting
+	//
 
+	// Public:
 	public Transform player;
 	public float cameraXSpeed;
 	public float cameraYSpeed;
 	public Vector3 offset;
 	public float zoomModifier;
+	//
+
+	// Private:
+	private Transform cameraTransform;
 
 	private float xInput;
 	private float yInput;
 	private float wInput;
-	private float minY = 0.0f;
-	private float maxY = 45.0f;
-	private float minFOV = 30.0f;
-	private float maxFOV = 90.0f;
-	private float currentPitch = 0.0f;
-	private Transform cameraTransform;
+
+	private float minY;
+	private float maxY;
+	private float minFOV;
+	private float maxFOV;
+	private float currentPitch;
 	private Vector3 newAngles;
+	//
 	
-	void Start ()
+	void Start()
 	{
+		minY = 0.0f;
+		maxY = 45.0f;
+		minFOV = 30.0f;
+		maxFOV = 90.0f;
+		currentPitch = 0.0f;
+
 		cameraTransform = GetComponent<Transform>();
 
 		cameraTransform.position = player.position + offset; 

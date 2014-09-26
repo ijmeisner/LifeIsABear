@@ -10,18 +10,8 @@ public class PlayerController : MonoBehaviour
 	// TODO
 	// add animation plays once animations are available
 	// add UI response to controls
-	// add item and ability and item usage once available
-	// decide input controls
-	// make attribute dependant stuff dependant on attributes once added
-	// learn spherecast behavior and adjust it
 
-	// Ideas for control scheme
-	// left click attacks, right click uses ability or item, whichever is selected
-	// Make 'Q' select item (and change which if item is selected) and 'E' select/change ability
-	// Use Edit->ProjectSettings->Input to change, and maybe we will make configurable at some point
-
-	// Item/Ability value means none; for when you don't have one yet otherwise cycle to nonzero values
-
+	// Public:
 	public float forwardSpeed;
 	public float sideSpeed;
 	public float backwardsModifier; // # times slower than forwardSpeed
@@ -29,10 +19,15 @@ public class PlayerController : MonoBehaviour
 	public float sprintModifier;
 	public float jumpDelay; // can change to when contacting ground, but I think there should be longer delay for a bear
 	public Transform cameraTransform;
+	//
 
-	public float attackRange; // get this from attribute once attribute class is available
-	public float hitForce; // Your strength (*100?), get this from attribute once attribute class is available
-	public float stamina; // sprint duraction, get this from attribute once attribute class is available
+	// Private:
+	private Transform m_playerTransform;
+	private Rigidbody m_playerRigidbody;
+	private PlayerAttributes m_playerAttributes;
+
+	private float m_weightModifier;
+	private bool m_isSprinting;
 
 	private Vector3 m_playerMovement;
 	private float m_moveX;
@@ -40,42 +35,47 @@ public class PlayerController : MonoBehaviour
 	private float m_XModifier;
 	private float m_YModifier;
 	private float m_jumpTime;
+
 	private int m_selectedAbility;
 	private int m_selectedItem;
 	private bool m_isAbility;
-	private int m_numAbilities = 0; // number of different abilities for selection
-	private int m_numItems = 0; // number of different abilities for selection
-	private float m_weightModifier;
-	private bool m_isSprinting;
+	private int m_numAbilities; // number of different abilities for selection
+	private int m_numItems; // number of different abilities for selection
+	//
 
 	void Start()
 	{
 		m_jumpTime = 0;
 		m_selectedItem = 0;
 		m_selectedAbility = 0;
+		m_numItems = 0;
+		m_numAbilities = 0;
 		m_isSprinting = false;
-		m_weightModifier = GetComponent<Rigidbody>().mass;
+		m_playerAttributes = GetComponent<PlayerAttributes>();
+		m_playerRigidbody = GetComponent<Rigidbody>();
+		m_playerTransform = GetComponent<Transform>();
+		m_weightModifier = m_playerRigidbody.mass;
 	}
 	
-	void FixedUpdate () // decide controls to use and edit this when agreed upon
+	void FixedUpdate ()
 	{
 		movePlayer();
 	}
 
 	void Update()
 	{
-		if(Input.GetKeyDown(KeyCode.LeftShift) && (stamina > 0)) // Sprint, make customizable later
+		if(Input.GetKeyDown(KeyCode.LeftShift) && (m_playerAttributes.curEndurance > 0)) // Sprint
 		{
 			m_isSprinting = true;
 			StartCoroutine(cameraWobble());
-			stamina -= 10*Time.deltaTime;
-			Mathf.Clamp(stamina, 0, Mathf.Infinity);
+			m_playerAttributes.curEndurance -= 1*Time.deltaTime;
+			Mathf.Clamp(m_playerAttributes.curEndurance, 0, Mathf.Infinity);
 		}
 		
-		if(Input.GetKeyUp(KeyCode.LeftShift) || (stamina <= 0)) // Sprint, make customizable later
+		if(Input.GetKeyUp(KeyCode.LeftShift) || (m_playerAttributes.curEndurance <= 0)) // Sprint
 		{
 			m_isSprinting = false;
-			// coroutine for delayed stamina gain
+			// add delayed stamina gain
 		}
 		
 		if(Input.GetButtonDown("Jump")) // Jump
@@ -124,7 +124,7 @@ public class PlayerController : MonoBehaviour
 				m_isAbility = false;
 				// Add to UI that item is selected
 			}
-			else
+			else // later add check to skip if have 0, or remove from items list
 			{
 				m_selectedItem++;
 				if(m_selectedItem > m_numItems)
@@ -134,7 +134,7 @@ public class PlayerController : MonoBehaviour
 			}
 		}
 
-		increaseTimes(); // for stuff like jumpTime;
+		m_jumpTime -= Time.deltaTime;
 	}
 
 	void movePlayer()
@@ -162,46 +162,26 @@ public class PlayerController : MonoBehaviour
 
 		m_playerMovement.Set(m_moveX, 0.0f, m_moveY);
 		
-		transform.Translate(Vector3.ClampMagnitude(m_playerMovement, Mathf.Abs(m_YModifier)));
+		m_playerTransform.Translate(Vector3.ClampMagnitude(m_playerMovement, Mathf.Abs(m_YModifier)));
 	}
 
 	void jumpPlayer()
 	{
 		if(m_jumpTime <= 0)
 		{
-			rigidbody.AddForce(Vector3.up * jumpModifier);
+			m_playerRigidbody.AddForce(Vector3.up * jumpModifier);
 			m_jumpTime = jumpDelay;
 		}
 	}
 
 	void useAbility(int ability)
 	{
-		switch(ability)
-		{
-			case 1:
-				// ability function go here from ability class
-				break;
-			case 2:
-				// ability function go here from ability class
-				break;
-			default:
-				break;
-		}
+		return; // pending ability implementation
 	}
 
 	void useItem(int item)
 	{
-		switch(item)
-		{
-			case 1:
-				// item function go here from item class
-				break;
-			case 2:
-				// item function go here from item class
-				break;
-			default:
-				break;
-		}
+		return; // pending item implementation
 	}
 
 	void playerAttack()
@@ -209,24 +189,18 @@ public class PlayerController : MonoBehaviour
 		RaycastHit objectHit;
 		// Swipe animation or however visual is wanted
 		if(Physics.SphereCast(transform.position,
-		                              attackRange/2,
+		                              m_playerAttributes.attRange/2,
 		                              transform.TransformDirection(Vector3.forward),
 		                              out objectHit,
-		                              attackRange))
+		                              m_playerAttributes.attRange))
 		{
-			objectHit.rigidbody.AddForce(objectHit.normal*hitForce*-1);
-			if(objectHit.transform.gameObject.tag == "Destructible" || // in-animate things that can be destroyed
-			   objectHit.transform.gameObject.tag == "Target") // or whatever the tag for people is
+			objectHit.rigidbody.AddForce(objectHit.normal*m_playerAttributes.strength*100*-1);
+			if(objectHit.transform.gameObject.tag == "Destructible") // inanimate things that can be destroyed
 			{
 				// play destroyed animation
 				StartCoroutine(GameController.animDestroy(objectHit.transform.gameObject, 1.0f)); // delayed destroy
 			}
 		}
-	}
-
-	void increaseTimes()
-	{
-		m_jumpTime -= Time.deltaTime;
 	}
 
 	IEnumerator cameraWobble()
