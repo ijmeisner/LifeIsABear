@@ -7,7 +7,13 @@ using System.Collections;
 
 public class CameraController : MonoBehaviour {
 
+<<<<<<< HEAD
 	//
+=======
+	// TODO
+	// fix FOV is not clamping for some reason
+	// add camera wobble (to be used in sprinting) if we want to add it
+>>>>>>> origin/master
 
 	// Public:
 	public Transform player;
@@ -23,6 +29,7 @@ public class CameraController : MonoBehaviour {
 	private float xInput;
 	private float yInput;
 	private float wInput;
+<<<<<<< HEAD
 
 	private float minY;
 	private float maxY;
@@ -31,9 +38,19 @@ public class CameraController : MonoBehaviour {
 	private float currentPitch;
 	private Vector3 newAngles;
 	//
+=======
+	private float minY = 0.0f;
+	private float maxY = 45.0f;
+	private float minFOV = 30.0f;
+	private float maxFOV = 90.0f;
+	private float currentPitch = 0.0f;
+	// private int wobbleDir = -1;
+	// private float wobbleModifier = 0.1f;
+>>>>>>> origin/master
 	
 	void Start()
 	{
+<<<<<<< HEAD
 		minY = 0.0f;
 		maxY = 45.0f;
 		minFOV = 30.0f;
@@ -44,6 +61,10 @@ public class CameraController : MonoBehaviour {
 
 		cameraTransform.position = player.position + offset; 
 		cameraTransform.LookAt(player.position);
+=======
+		transform.position = player.position + offset; 
+		transform.LookAt(player.position);
+>>>>>>> origin/master
 	}
 
 	void LateUpdate ()
@@ -66,7 +87,11 @@ public class CameraController : MonoBehaviour {
 		player.transform.Rotate(Vector3.up * xInput);
 
 		currentPitch = Mathf.Clamp(currentPitch + yInput, minY, maxY);
-		newAngles.Set(currentPitch, cameraTransform.localEulerAngles.y, cameraTransform.localEulerAngles.z);
-		cameraTransform.localEulerAngles = newAngles;
+		transform.localEulerAngles = Vector3.right * currentPitch;
+	}
+
+	public static IEnumerator cameraWobble() // TODO
+	{
+		yield return null;
 	}
 }
