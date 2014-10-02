@@ -10,6 +10,7 @@ public class PlayerController : MonoBehaviour
 	// TODO
 	// add animation plays once animations are available
 	// add UI response to controls
+	// add smoothing to camera wobble
 
 	// Public:
 	public float forwardSpeed;
@@ -64,6 +65,9 @@ public class PlayerController : MonoBehaviour
 
 	void Update()
 	{
+		m_moveX = Input.GetAxis("Horizontal");
+		m_moveY = Input.GetAxis("Vertical");
+
 		if(Input.GetKeyDown(KeyCode.LeftShift) && (m_playerAttributes.curEndurance > 0)) // Sprint
 		{
 			m_isSprinting = true;
@@ -132,6 +136,18 @@ public class PlayerController : MonoBehaviour
 					m_selectedItem = 1;
 				}
 			}
+			if(Input.GetButtonDown("Activate"))
+			{
+				RaycastHit objectHit;
+				if(Physics.SphereCast(m_playerTransform.position,
+				                      m_playerAttributes.attRange/2,
+				                      m_playerTransform.forward,
+				                      out objectHit,
+				                      m_playerAttributes.attRange))
+				{
+					Debug.Log(objectHit.transform.gameObject.name);
+				}
+			}
 		}
 
 		m_jumpTime -= Time.deltaTime;
@@ -141,8 +157,6 @@ public class PlayerController : MonoBehaviour
 	{
 		m_XModifier = 1;
 		m_YModifier = 1;
-		m_moveX = Input.GetAxis("Horizontal");
-		m_moveY = Input.GetAxis("Vertical");
 
 		if(m_isSprinting)
 		{
@@ -188,16 +202,15 @@ public class PlayerController : MonoBehaviour
 	{
 		RaycastHit objectHit;
 		// Swipe animation or however visual is wanted
-		if(Physics.SphereCast(transform.position,
-		                              m_playerAttributes.attRange/2,
-		                              transform.TransformDirection(Vector3.forward),
-		                              out objectHit,
-		                              m_playerAttributes.attRange))
+		if(Physics.SphereCast(m_playerTransform.position,
+		                      m_playerAttributes.attRange/2,
+		                      m_playerTransform.forward,
+		                      out objectHit,
+		                      m_playerAttributes.attRange))
 		{
 			objectHit.rigidbody.AddForce(objectHit.normal*m_playerAttributes.strength*100*-1);
-			if(objectHit.transform.gameObject.tag == "Destructible") // inanimate things that can be destroyed
+			if(objectHit.transform.gameObject.CompareTag("Destructible")) // inanimate things that can be destroyed
 			{
-				// play destroyed animation
 				StartCoroutine(GameController.animDestroy(objectHit.transform.gameObject, 1.0f)); // delayed destroy
 			}
 		}
@@ -206,16 +219,32 @@ public class PlayerController : MonoBehaviour
 	IEnumerator cameraWobble()
 	{
 		float wobbleModifier = 0.3f;
-		
+		float wobbleSpeed = 0.2f;
+		// float timeChange;
+
 		cameraTransform.Rotate(Vector3.forward * -wobbleModifier/2);
-		yield return new WaitForSeconds(0.1f);
+		yield return new WaitForSeconds(wobbleSpeed);
 		while(m_isSprinting)
 		{
 			cameraTransform.Rotate(Vector3.forward * wobbleModifier);
-			yield return new WaitForSeconds(0.1f);
+			yield return new WaitForSeconds(wobbleSpeed);
+
 			cameraTransform.Rotate(Vector3.forward * -wobbleModifier);
-			yield return new WaitForSeconds(0.1f);
+			yield return new WaitForSeconds(wobbleSpeed);
 		}
 		cameraTransform.Rotate(Vector3.forward * wobbleModifier/2);
+
+		// Prevents camera from staying centered
+		/*
+		 timeChange = 0.0f;
+		 while(timeChange < wobbleSpeed)
+			{
+				timeChange += Time.deltaTime;
+				cameraTransform.rotation = Quaternion.Lerp(cameraTransform.rotation,
+				                                            Quaternion.AngleAxis(-wobbleModifier, cameraTransform.forward),
+				                                            Time.deltaTime);
+				yield return null;
+			}
+		 */
 	}
 }
