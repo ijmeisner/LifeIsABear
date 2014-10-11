@@ -11,14 +11,14 @@ public class PlayerController : MonoBehaviour
 	// add animation plays once animations are available
 	// add UI response to controls
 	// add smoothing to camera wobble
+	// remember to check center of mass when a real model is added
 
 	// Public:
-	public float forwardSpeed;
-	public float sideSpeed;
-	public float backwardsModifier; // # times slower than forwardSpeed
-	public float jumpModifier;
-	public float sprintModifier;
-	public float jumpDelay; // can change to when contacting ground, but I think there should be longer delay for a bear
+	public float forwardSpeed; // 0.15 or so with translate
+	public float sideSpeed; // something like 1/3 forward speed
+	public float backwardsModifier; // # times slower than forwardSpeed, 1/3 or so
+	public float jumpModifier; // 2500 or something with 10x grav
+	public float sprintModifier; // 1.75 or so
 	public Transform cameraTransform;
 	//
 
@@ -29,6 +29,8 @@ public class PlayerController : MonoBehaviour
 
 	private float m_weightModifier;
 	private bool m_isSprinting;
+	private bool m_isGrounded;
+	private bool m_jump;
 
 	private Vector3 m_playerMovement;
 	private float m_moveX;
@@ -36,6 +38,8 @@ public class PlayerController : MonoBehaviour
 	private float m_XModifier;
 	private float m_YModifier;
 	private float m_jumpTime;
+	// private float m_maxSlope;
+	// private RaycastHit m_objectHit;
 
 	private int m_selectedAbility;
 	private int m_selectedItem;
@@ -46,7 +50,7 @@ public class PlayerController : MonoBehaviour
 
 	void Start()
 	{
-		m_jumpTime = 0;
+		// m_maxSlope = 50.0f;
 		m_selectedItem = 0;
 		m_selectedAbility = 0;
 		m_numItems = 0;
@@ -56,11 +60,20 @@ public class PlayerController : MonoBehaviour
 		m_playerRigidbody = GetComponent<Rigidbody>();
 		m_playerTransform = GetComponent<Transform>();
 		m_weightModifier = m_playerRigidbody.mass;
+
+		// Player doesn't fall onto side
+		m_playerRigidbody.centerOfMass = new Vector3(0.0f, -0.5f,0.0f); // adjust for new model size when added
 	}
 	
-	void FixedUpdate ()
+	void FixedUpdate()
 	{
 		movePlayer();
+
+		if(m_jump)
+		{
+			jumpPlayer();
+			m_jump = false;
+		}
 	}
 
 	void Update()
@@ -82,9 +95,9 @@ public class PlayerController : MonoBehaviour
 			// add delayed stamina gain
 		}
 		
-		if(Input.GetButtonDown("Jump")) // Jump
+		if(Input.GetButtonDown("Jump") && m_isGrounded) // Jump
 		{
-			jumpPlayer();
+			m_jump = true;
 		}
 		
 		if(Input.GetButtonDown("Fire1")) // Attack
@@ -149,8 +162,6 @@ public class PlayerController : MonoBehaviour
 				}
 			}
 		}
-
-		m_jumpTime -= Time.deltaTime;
 	}
 
 	void movePlayer()
@@ -171,21 +182,17 @@ public class PlayerController : MonoBehaviour
 			m_YModifier /= backwardsModifier;
 		}
 
-		m_moveX *= m_XModifier;
-		m_moveY *= m_YModifier;
-
-		m_playerMovement.Set(m_moveX, 0.0f, m_moveY);
+		m_playerMovement.Set(m_moveX * m_XModifier, 0.0f, m_moveY * m_YModifier);
 		
 		m_playerTransform.Translate(Vector3.ClampMagnitude(m_playerMovement, Mathf.Abs(m_YModifier)));
+		// Using velocity gives all kinds of glitches
+		//m_playerRigidbody.velocity = m_playerTransform.TransformDirection(Vector3.ClampMagnitude(m_playerMovement,
+		//                                                                                Mathf.Abs(m_YModifier)));
 	}
 
 	void jumpPlayer()
 	{
-		if(m_jumpTime <= 0)
-		{
-			m_playerRigidbody.AddForce(Vector3.up * jumpModifier);
-			m_jumpTime = jumpDelay;
-		}
+		m_playerRigidbody.AddRelativeForce(Vector3.up * jumpModifier * Physics.gravity.magnitude);
 	}
 
 	void useAbility(int ability)
@@ -200,20 +207,31 @@ public class PlayerController : MonoBehaviour
 
 	void playerAttack()
 	{
-		RaycastHit objectHit;
+		RaycastHit m_objectHit;
+
 		// Swipe animation or however visual is wanted
 		if(Physics.SphereCast(m_playerTransform.position,
 		                      m_playerAttributes.attRange/2,
 		                      m_playerTransform.forward,
-		                      out objectHit,
+		                      out m_objectHit,
 		                      m_playerAttributes.attRange))
 		{
-			objectHit.rigidbody.AddForce(objectHit.normal*m_playerAttributes.strength*100*-1);
-			if(objectHit.transform.gameObject.CompareTag("Destructible")) // inanimate things that can be destroyed
+			m_objectHit.rigidbody.AddForce(m_objectHit.normal*m_playerAttributes.strength*100*-1);
+			if(m_objectHit.transform.gameObject.CompareTag("Destructible")) // inanimate things that can be destroyed
 			{
-				StartCoroutine(GameController.animDestroy(objectHit.transform.gameObject, 1.0f)); // delayed destroy
+				StartCoroutine(GameController.animDestroy(m_objectHit.transform.gameObject, 1.0f)); // delayed destroy
 			}
 		}
+	}
+
+	void OnCollisionStay(Collision collision)
+	{
+		m_isGrounded = true;
+	}
+
+	void OnCollisionExit()
+	{
+		m_isGrounded = false;
 	}
 
 	IEnumerator cameraWobble()

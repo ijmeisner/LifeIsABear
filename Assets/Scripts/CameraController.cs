@@ -1,5 +1,5 @@
 ﻿//
-// Camera Follows player, and Rotates by moving mouse
+// Camera Follows player (attached), and Rotates by moving mouse
 //
 
 using UnityEngine;
@@ -18,55 +18,72 @@ public class CameraController : MonoBehaviour {
 	//
 
 	// Private:
-	private Transform cameraTransform;
+	private Transform m_cameraTransform;
+	private Transform m_playerTransform;
 
-	private float xInput;
-	private float yInput;
-	private float wInput;
+	private float m_xInput;
+	private float m_yInput;
+	private float m_wInput;
 
-	private float minY;
-	private float maxY;
-	private float minFOV;
-	private float maxFOV;
-	private float currentPitch;
-	private Vector3 newAngles;
+	private float m_minY;
+	private float m_maxY;
+	private float m_minFOV;
+	private float m_maxFOV;
+	private float m_currentPitch;
+	private Vector3 m_newAngles;
 	//
 	
 	void Start()
 	{
-		minY = 0.0f;
-		maxY = 45.0f;
-		minFOV = 30.0f;
-		maxFOV = 90.0f;
-		currentPitch = 0.0f;
+		m_minY = 0.0f;
+		m_maxY = 45.0f;
+		m_minFOV = 30.0f;
+		m_maxFOV = 90.0f;
+		m_currentPitch = 0.0f;
 
-		cameraTransform = GetComponent<Transform>();
+		m_cameraTransform = GetComponent<Transform>();
+		m_playerTransform = player.GetComponent<Transform>();
 
-		cameraTransform.position = player.position + offset; 
-		cameraTransform.LookAt(player.position);
+		m_cameraTransform.position = m_playerTransform.position + offset; 
+		m_cameraTransform.LookAt(m_playerTransform.position);
 	}
 
 	void LateUpdate ()
 	{
-		wInput = Input.GetAxis("Mouse ScrollWheel");
-		if (wInput < 0)
+		// Mouse Wheel Zoom
+		m_wInput = Input.GetAxis("Mouse ScrollWheel");
+		if (m_wInput < 0)
 		{
-			camera.fieldOfView -= wInput * zoomModifier;
-			camera.fieldOfView = Mathf.Clamp(camera.fieldOfView, minFOV, maxFOV);
+			camera.fieldOfView -= m_wInput * zoomModifier;
+			camera.fieldOfView = Mathf.Clamp(camera.fieldOfView, m_minFOV, m_maxFOV);
 		}
-		else if(wInput > 0)
+		else if(m_wInput > 0)
 		{
-			camera.fieldOfView -= wInput * zoomModifier;
-			camera.fieldOfView = Mathf.Clamp(camera.fieldOfView, minFOV, maxFOV);
+			camera.fieldOfView -= m_wInput * zoomModifier;
+			camera.fieldOfView = Mathf.Clamp(camera.fieldOfView, m_minFOV, m_maxFOV);
 		}
 
-		yInput = Input.GetAxisRaw("Mouse Y") * cameraYSpeed * -1;
-		xInput = Input.GetAxisRaw("Mouse X") * cameraXSpeed;
+		// Mouse movement input
+		m_yInput = Input.GetAxis("Mouse Y") * cameraYSpeed * -1;
+		m_xInput = Input.GetAxis("Mouse X") * cameraXSpeed;
 
-		player.transform.Rotate(Vector3.up * xInput);
+		// Camera Follows player and rotates around him
+		m_cameraTransform.position = m_playerTransform.position + offset;
+		m_cameraTransform.RotateAround(m_playerTransform.position, Vector3.up, m_xInput);
+		offset = m_cameraTransform.position - m_playerTransform.position;
 
-		currentPitch = Mathf.Clamp(currentPitch + yInput, minY, maxY);
-		newAngles.Set(currentPitch, cameraTransform.localEulerAngles.y, cameraTransform.localEulerAngles.z);
-		cameraTransform.localEulerAngles = newAngles;
+		//m_playerTransform.Rotate(Vector3.up * m_xInput);
+
+		// Camera up and down rotation
+		m_currentPitch = Mathf.Clamp(m_currentPitch + m_yInput, m_minY, m_maxY);
+		m_newAngles.Set(m_currentPitch,
+		                m_cameraTransform.localEulerAngles.y,
+		                m_cameraTransform.localEulerAngles.z);
+		m_cameraTransform.localEulerAngles = m_newAngles;
+		// Player rotates sideways with camera
+		m_newAngles.Set(m_playerTransform.localEulerAngles.x,
+		                m_cameraTransform.localEulerAngles.y,
+		                m_playerTransform.localEulerAngles.z);
+		m_playerTransform.localEulerAngles = m_newAngles;
 	}
 }

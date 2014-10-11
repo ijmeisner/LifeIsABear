@@ -74,10 +74,14 @@ public class GameController : MonoBehaviour {
 			if(sunLight.eulerAngles.x > 180)
 			{
 				isDay = false;
+				sunLight.light.enabled = false;
+				moonLight.light.enabled = true;
 			}
 			else
 			{
 				isDay = true;
+				sunLight.light.enabled = true;
+				moonLight.light.enabled = false;
 			}
 			// Light brightest at noon
 			if(sunLight.eulerAngles.y == 0)
