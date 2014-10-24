@@ -11,4 +11,6 @@ public interface BaseAI
 	void lookForOthers(); // Look for other living beings
 	void flee();          // Run under various situations
 	void hide();
+
+
 }
