@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class CellNode : MonoBehaviour
+public class CellNode
 {
 	Vector2[] vertIndices; // Indices into vector3 array that are the verts of the cell.
 	Vector3   normal;      // Vector normal to this face of the graph. (Not necessary for
@@ -25,13 +25,13 @@ public class CellNode : MonoBehaviour
 		cellCenter.x += vertIndices [1].x;
 		cellCenter.x += vertIndices [2].x;
 		cellCenter.x /= 3;
-		cellCenter.y = vertIndices [0].y;
-		cellCenter.y += vertIndices [1].y;
-		cellCenter.y += vertIndices [2].y;
-		cellCenter.y /= 3;
+		cellCenter.z = vertIndices [0].y;
+		cellCenter.z += vertIndices [1].y;
+		cellCenter.z += vertIndices [2].y;
+		cellCenter.z /= 3;
 	} // ** Only need this as temporary place holder in CurrentCell function in PathGraph class.
 
-	public CellNode( Vector3 vert1, Vector3 vert2, Vector3 vert3, int index)
+	public CellNode( Vector3 vert1, Vector3 vert2, Vector3 vert3, int srcIndex)
 	{
 		Vector3 a; // used to calculate normal vector
 		Vector3 b; // used to calculate normal vector
@@ -45,7 +45,20 @@ public class CellNode : MonoBehaviour
 		normal = Vector3.Normalize (normal);
 		navigable = Vector3.Angle (normal, new Vector3 (0.0f, 1, 0.0f)) < 45; // SAMPLE** 45 degree angle is too steep to navigate.
 		clearanceHeight = 5; // Not specified, so assume 5 meters clearance.
+		cellCenter.x = vertIndices [0].x;
+		cellCenter.x += vertIndices [1].x;
+		cellCenter.x += vertIndices [2].x;
+		cellCenter.x /= 3;
+		cellCenter.y = vertIndices [0].y;
+		cellCenter.y += vertIndices [1].y;
+		cellCenter.y += vertIndices [2].y;
+		cellCenter.y /= 3;
+		index = srcIndex;
 
+	}
+	public Vector3 GetCenter()
+	{
+		return cellCenter;
 	}
 	
 
@@ -55,6 +68,7 @@ public class CellNode : MonoBehaviour
 	}
 	public void SetEdge1( int index)
 	{
+		linkedNodes = new int[3];
 		linkedNodes [0] = index;
 	}
 	public void SetEdge2( int index)
@@ -76,17 +90,11 @@ public class CellNode : MonoBehaviour
 		distanceEstSqrd = xDiff * xDiff + yDiff * yDiff;
 		return distanceEstSqrd;
 	}
+
+	public int GetIndex()
+	{
+		return index;
+	}
 	// Use this for initialization
-	void Start () {
-		linkedNodes = new int[3];
-		for (int i = 0; i < 3; i++)
-		{
-			linkedNodes [i] = -2;
-		}
-	}
-	
-	// Update is called once per frame
-	void Update () {
-	
-	}
+
 }

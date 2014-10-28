@@ -1,9 +1,15 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class AnimalAI : MonoBehaviour, BaseAI {
-	public PathGraph pathGraph;
+public class AnimalAI : ScriptableObject, BaseAI
+{
+	PathGraph pathGraph;
 	float lastDecisionTime;
+
+	public AnimalAI()
+	{
+		pathGraph = PathGraph.activeGraph;
+	}
 	public void smell() // TODO
 	{
 		return;
@@ -16,14 +22,44 @@ public class AnimalAI : MonoBehaviour, BaseAI {
 	{
 		return;
 	}
-	public void pathSelect()
+
+	public Vector2[] pathSelect( Vector3 currentPos )
 	{
+		pathGraph = PathGraph.activeGraph;
+		Vector2[] path;
+		path = null;
 		float currentTime = Time.time;
-		if( currentTime - lastDecisionTime > 10.0f)
+		if( currentTime - lastDecisionTime > 15.0f)
 		{
-			pathGraph.Astar ( this.transform.position, this.transform.position + new Vector3(25.0f, 0.0f, 25.0f));
-			lastDecisionTime = Time.time;
+			int[] pathIndices = null;
+			pathIndices = pathGraph.Astar ( currentPos, currentPos + new Vector3(2.0f, 0.0f, 2.0f));
+			int pathSize = 0;
+			if( pathIndices != null )
+			{
+				pathSize = pathIndices.Length;
+				path = new Vector2[ pathSize];
+			}
+			else
+			{
+				pathSize = 0;
+			}
+			int i;
+			if( pathIndices != null && pathIndices[0] != -3)
+			{
+				for( i = 0; i < pathSize; i++ )
+				{
+					path[i] = new Vector2( pathGraph.CurrentCell( pathIndices[i]).GetCenter().x, pathGraph.CurrentCell ( pathIndices[i]).GetCenter ().z );
+				}
+				lastDecisionTime = Time.time;
+			}
+			else
+			{
+				path = null;
+				lastDecisionTime = Time.time;
+				// agent is at goal!
+			}
 		}
+		return path;
 	}
 	public void attack() // TODO
 	{
@@ -41,12 +77,13 @@ public class AnimalAI : MonoBehaviour, BaseAI {
 	{
 		return;
 	}
-	// Use this for initialization
-	void Start () {
+	public void Awake()
+	{
+		pathGraph = PathGraph.activeGraph;
+		lastDecisionTime = Time.time;
 	}
-	
-	// Update is called once per frame
-	void Update () {
-		pathSelect ();	
+	public void Update()
+	{
+		pathGraph = PathGraph.activeGraph;
 	}
 }

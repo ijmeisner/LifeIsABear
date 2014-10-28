@@ -50,6 +50,7 @@
      <Compile Include="Assets\Scripts\BaseAI.cs" />
      <Compile Include="Assets\Scripts\CameraController.cs" />
      <Compile Include="Assets\Scripts\CellNode.cs" />
+     <Compile Include="Assets\Scripts\Fox.cs" />
      <Compile Include="Assets\Scripts\GameController.cs" />
      <Compile Include="Assets\Scripts\PathGraph.cs" />
      <Compile Include="Assets\Scripts\PlayerAttributes.cs" />

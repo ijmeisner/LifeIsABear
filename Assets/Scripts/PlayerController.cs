@@ -14,6 +14,7 @@ public class PlayerController : MonoBehaviour
 	// remember to check center of mass when a real model is added
 
 	// Public:
+	public static Vector3 playerPos; // the position of the player is now retrievable
 	public float forwardSpeed; // 0.15 or so with translate
 	public float sideSpeed; // something like 1/3 forward speed
 	public float backwardsModifier; // # times slower than forwardSpeed, 1/3 or so
@@ -50,6 +51,7 @@ public class PlayerController : MonoBehaviour
 
 	void Start()
 	{
+		playerPos = this.transform.position;
 		// m_maxSlope = 50.0f;
 		m_selectedItem = 0;
 		m_selectedAbility = 0;
@@ -162,6 +164,7 @@ public class PlayerController : MonoBehaviour
 				}
 			}
 		}
+		playerPos = this.transform.position;
 	}
 
 	void movePlayer()
