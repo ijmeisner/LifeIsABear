@@ -8,7 +8,7 @@ using System.Collections;
 public class GameController : MonoBehaviour {
 
 	// TODO
-	// remove Application.Quit in Update once menu is added
+	// Add Menu and remove Application.Quit in Update once menu is added
 	// have weather transition and make sky more gray
 	// add sunset/sunrise tint maybe?
 	// make particle system created by script instead of using from within editor if possible, but don't know how to yet
@@ -22,13 +22,13 @@ public class GameController : MonoBehaviour {
 
 	public float weatherLength; // how long a weather condition will last at minimum
 	public float noWeatherLength; // how long a weather condition must have to wait to occur at minimum
-	public float weatherStartChance; // 0-1, lower is less likely
-	public float weatherStopChance; // 0-1, lower is less likely
-	//
+	public float weatherStartChance; // 0-1, lower is less likely, chance to happen in each 30 seconds
+	public float weatherStopChance; // 0-1, lower is less likely, chance to happen each 30 seconds
+	// -
 
 	// Public Static:
 	public static bool isDay;
-	//
+	// -
 
 	void Start()
 	{
@@ -40,15 +40,29 @@ public class GameController : MonoBehaviour {
 		isDay = true;
 		StartCoroutine(dayNight());
 		StartCoroutine(weather());
+		StartCoroutine(autosave());
+
+		// SaveGame.load();
 	}
 
 	void Update()
 	{
 		if(Input.GetKeyDown(KeyCode.Escape)) // remove this when menu to quit with is added
 		{
+			// SAVE
 			Application.Quit();
 		}
 	}
+
+	void OnApplicationQuit()
+	{
+		// SAVE
+		// SaveGame.save();
+	}
+
+	// ---
+	// --------------------
+	// ---
 
 	public static IEnumerator animDestroy(Object destroyObj, float destroyTime) // destroy object after animation
 	{
@@ -65,7 +79,7 @@ public class GameController : MonoBehaviour {
 		// float moonIntensity = moonLight.light.intensity;
 		float deltaSunLight = deltaAngle/500;
 		float deltaMoonLight = deltaAngle/1500;
-		Color defaultSkyColor = new Color(100.0f/255.0f, 140.0f/255.0f, 200.0f/255.0f);
+		Color defaultSkyColor = new Color(100.0f/255.0f, 155.0f/255.0f, 225.0f/255.0f);
 
 		while(true)
 		{
@@ -105,7 +119,7 @@ public class GameController : MonoBehaviour {
 
 	public IEnumerator weather()
 	{
-		// declare particle system here
+		// declare particle system here if possible
 
 		yield return new WaitForSeconds(noWeatherLength);
 		while(true)
@@ -116,20 +130,21 @@ public class GameController : MonoBehaviour {
 			// Decide if a weather happens
 			while(Random.Range(0.0f, 1.0f)>(weatherStartChance))
 			{
-				yield return new WaitForSeconds(2); // random should be framerate independant
+				yield return new WaitForSeconds(30); // random should be framerate independant
 			}
 
 			playerCamera.particleSystem.Play();
 
 			timeChange = 0.0f;
 			startIntensity = sunLight.light.intensity;
+			// light dims when storm comes
 			while(timeChange < noWeatherLength)
 			{
 				timeChange += Time.deltaTime;
 				sunLight.light.intensity = Mathf.Lerp(sunLight.light.intensity,
 				                                      startIntensity-0.3f,
 				                                      Time.deltaTime);
-				// increase particle count here
+				// gradually increase particle count here
 				yield return null;
 			}
 
@@ -139,7 +154,7 @@ public class GameController : MonoBehaviour {
 			// weather can last variable amount of time
 			while(Random.Range(0.0f, 1.0f)>(weatherStopChance))
 			{
-				yield return new WaitForSeconds(2);
+				yield return new WaitForSeconds(30);
 			}
 
 			playerCamera.particleSystem.Stop();
@@ -147,15 +162,23 @@ public class GameController : MonoBehaviour {
 			// wait until weather is allowed
 			timeChange = 0.0f;
 			startIntensity = sunLight.light.intensity;
+			// return to normal light intensity
 			while(timeChange < noWeatherLength)
 			{
 				timeChange += Time.deltaTime;
 				sunLight.light.intensity = Mathf.Lerp(sunLight.light.intensity,
 				                                      startIntensity+0.3f,
 				                                      Time.deltaTime);
+				// gradually decrease particle count here
 				yield return null;
 			}
 		}
+	}
 
+	IEnumerator autosave()
+	{
+		//SaveGame.save();
+		yield return new WaitForSeconds(300);
+		Debug.Log("Autosaving");
 	}
 }

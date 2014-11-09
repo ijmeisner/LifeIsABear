@@ -7,7 +7,9 @@ using System.Collections;
 
 public class CameraController : MonoBehaviour {
 
-	//
+	// TODO
+	// Prevent from going through things it shouldn't
+	// find a way to "lerp" camera rotation without breaking it
 
 	// Public:
 	public Transform player;
@@ -15,7 +17,7 @@ public class CameraController : MonoBehaviour {
 	public float cameraYSpeed;
 	public Vector3 offset;
 	public float zoomModifier;
-	//
+	// -
 
 	// Private:
 	private Transform m_cameraTransform;
@@ -31,15 +33,16 @@ public class CameraController : MonoBehaviour {
 	private float m_maxFOV;
 	private float m_currentPitch;
 	private Vector3 m_newAngles;
-	//
+	private Vector3 m_oldAngles;
+	// -
 	
-	void Start()
+	void Start() // make sure this happens after load
 	{
 		m_minY = 0.0f;
 		m_maxY = 45.0f;
 		m_minFOV = 30.0f;
 		m_maxFOV = 90.0f;
-		m_currentPitch = 0.0f;
+		m_currentPitch = 12.0f;
 
 		m_cameraTransform = GetComponent<Transform>();
 		m_playerTransform = player.GetComponent<Transform>();
@@ -72,14 +75,13 @@ public class CameraController : MonoBehaviour {
 		m_cameraTransform.RotateAround(m_playerTransform.position, Vector3.up, m_xInput);
 		offset = m_cameraTransform.position - m_playerTransform.position;
 
-		//m_playerTransform.Rotate(Vector3.up * m_xInput);
-
 		// Camera up and down rotation
 		m_currentPitch = Mathf.Clamp(m_currentPitch + m_yInput, m_minY, m_maxY);
 		m_newAngles.Set(m_currentPitch,
 		                m_cameraTransform.localEulerAngles.y,
 		                m_cameraTransform.localEulerAngles.z);
 		m_cameraTransform.localEulerAngles = m_newAngles;
+
 		// Player rotates sideways with camera
 		m_newAngles.Set(m_playerTransform.localEulerAngles.x,
 		                m_cameraTransform.localEulerAngles.y,

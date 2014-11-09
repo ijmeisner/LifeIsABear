@@ -12,6 +12,9 @@ public class PlayerController : MonoBehaviour
 	// add UI response to controls
 	// add smoothing to camera wobble
 	// remember to check center of mass when a real model is added
+	// decide on stamina loss values
+	// fix being able to get stuck on side ***FIXED?
+	// sprint particles?
 
 	// Public:
 	public float forwardSpeed; // 0.15 or so with translate
@@ -20,7 +23,7 @@ public class PlayerController : MonoBehaviour
 	public float jumpModifier; // 2500 or something with 10x grav
 	public float sprintModifier; // 1.75 or so
 	public Transform cameraTransform;
-	//
+	// -
 
 	// Private:
 	private Transform m_playerTransform;
@@ -31,6 +34,8 @@ public class PlayerController : MonoBehaviour
 	private bool m_isSprinting;
 	private bool m_isGrounded;
 	private bool m_jump;
+	private RaycastHit m_objectHit;
+	// private float m_maxSlope;
 
 	private Vector3 m_playerMovement;
 	private float m_moveX;
@@ -38,24 +43,27 @@ public class PlayerController : MonoBehaviour
 	private float m_XModifier;
 	private float m_YModifier;
 	private float m_jumpTime;
-	// private float m_maxSlope;
-	// private RaycastHit m_objectHit;
+	private float m_sprintStamLoss;
+	private float m_jumpStamLoss;
 
 	private int m_selectedAbility;
 	private int m_selectedItem;
 	private bool m_isAbility;
 	private int m_numAbilities; // number of different abilities for selection
 	private int m_numItems; // number of different abilities for selection
-	//
+	// -
 
-	void Start()
+	void Awake()
 	{
 		// m_maxSlope = 50.0f;
 		m_selectedItem = 0;
 		m_selectedAbility = 0;
 		m_numItems = 0;
 		m_numAbilities = 0;
+		m_jumpStamLoss = 4;
+		m_sprintStamLoss = 3;
 		m_isSprinting = false;
+
 		m_playerAttributes = GetComponent<PlayerAttributes>();
 		m_playerRigidbody = GetComponent<Rigidbody>();
 		m_playerTransform = GetComponent<Transform>();
@@ -64,7 +72,7 @@ public class PlayerController : MonoBehaviour
 		// Player doesn't fall onto side
 		m_playerRigidbody.centerOfMass = new Vector3(0.0f, -0.5f,0.0f); // adjust for new model size when added
 	}
-	
+
 	void FixedUpdate()
 	{
 		movePlayer();
@@ -78,24 +86,34 @@ public class PlayerController : MonoBehaviour
 
 	void Update()
 	{
+		// Movement Input
 		m_moveX = Input.GetAxis("Horizontal");
 		m_moveY = Input.GetAxis("Vertical");
 
-		if(Input.GetKeyDown(KeyCode.LeftShift) && (m_playerAttributes.curEndurance > 0)) // Sprint
+		// Non-Movement Controls
+		getPlayerAction();
+	}
+
+	// ---
+	// --------------------
+	// ---
+
+	void getPlayerAction()
+	{
+		if(Input.GetKeyDown(KeyCode.LeftShift) && (m_playerAttributes.curEndurance > m_sprintStamLoss)) // Sprint
 		{
 			m_isSprinting = true;
 			StartCoroutine(cameraWobble());
-			m_playerAttributes.curEndurance -= 1*Time.deltaTime;
+			m_playerAttributes.curEndurance -= m_sprintStamLoss*Time.deltaTime;
 			Mathf.Clamp(m_playerAttributes.curEndurance, 0, Mathf.Infinity);
 		}
 		
-		if(Input.GetKeyUp(KeyCode.LeftShift) || (m_playerAttributes.curEndurance <= 0)) // Sprint
+		if(Input.GetKeyUp(KeyCode.LeftShift) || (m_playerAttributes.curEndurance <= 0)) // Stop Sprint
 		{
 			m_isSprinting = false;
-			// add delayed stamina gain
 		}
 		
-		if(Input.GetButtonDown("Jump") && m_isGrounded) // Jump
+		if(Input.GetButtonDown("Jump") && m_isGrounded && (m_playerAttributes.curEndurance >= m_jumpStamLoss)) // Jump
 		{
 			m_jump = true;
 		}
@@ -151,14 +169,15 @@ public class PlayerController : MonoBehaviour
 			}
 			if(Input.GetButtonDown("Activate"))
 			{
-				RaycastHit objectHit;
+				// Find object
 				if(Physics.SphereCast(m_playerTransform.position,
 				                      m_playerAttributes.attRange/2,
 				                      m_playerTransform.forward,
-				                      out objectHit,
+				                      out m_objectHit,
 				                      m_playerAttributes.attRange))
 				{
-					Debug.Log(objectHit.transform.gameObject.name);
+					// Call it's activate function here
+					Debug.Log(m_objectHit.transform.gameObject.name);
 				}
 			}
 		}
@@ -193,6 +212,8 @@ public class PlayerController : MonoBehaviour
 	void jumpPlayer()
 	{
 		m_playerRigidbody.AddRelativeForce(Vector3.up * jumpModifier * Physics.gravity.magnitude);
+		m_playerRigidbody.AddRelativeForce(Vector3.forward * jumpModifier * 9.81f);
+		m_playerAttributes.curEndurance -= m_sprintStamLoss;
 	}
 
 	void useAbility(int ability)
@@ -207,8 +228,6 @@ public class PlayerController : MonoBehaviour
 
 	void playerAttack()
 	{
-		RaycastHit m_objectHit;
-
 		// Swipe animation or however visual is wanted
 		if(Physics.SphereCast(m_playerTransform.position,
 		                      m_playerAttributes.attRange/2,
@@ -219,10 +238,14 @@ public class PlayerController : MonoBehaviour
 			m_objectHit.rigidbody.AddForce(m_objectHit.normal*m_playerAttributes.strength*100*-1);
 			if(m_objectHit.transform.gameObject.CompareTag("Destructible")) // inanimate things that can be destroyed
 			{
-				StartCoroutine(GameController.animDestroy(m_objectHit.transform.gameObject, 1.0f)); // delayed destroy
+				StartCoroutine(GameController.animDestroy(m_objectHit.transform.gameObject, 3.0f)); // delayed destroy
 			}
 		}
 	}
+
+	// ---
+	// --------------------
+	// ---
 
 	void OnCollisionStay(Collision collision)
 	{
