@@ -42,11 +42,11 @@ public class PathGraph : MonoBehaviour
 			for( int k = 0; k < zSize; k += spaceIncrement)
 			{
 				int index = ((i*(zSize)+k)*2);
-				Vector3 bottomLeft = new Vector3(i,k,vertices[i,k]);
-				Vector3 topRight   = new Vector3(i+1,k+1,vertices[i+1,k+1]);
-				cells[index] = new CellNode( bottomLeft, new Vector3(i+1,k,vertices[i+1,k]), topRight, index);
+				Vector3 bottomLeft = new Vector3( i, vertices[i,k], k);
+				Vector3 topRight   = new Vector3( i+1, vertices[i+1,k+1], k+1);
+				cells[index] = new CellNode( bottomLeft, new Vector3( i+1, vertices[i+1,k], k), topRight, index);
 				index += 1;
-				cells[index] = new CellNode( bottomLeft, new Vector3(i,k+1,vertices[i,k+1]), topRight, index);
+				cells[index] = new CellNode( bottomLeft, new Vector3( i, vertices[i,k+1], k+1), topRight, index);
 			}
 		}
 	}
@@ -64,7 +64,7 @@ public class PathGraph : MonoBehaviour
 				cells[index].SetEdge1 ( index-1 );
 				cells[index].SetEdge2 ( index-((2*zSize)+1) );
 			}
-			else if( index >= 0 && index < (zSize*2-1) && index%2 == 1 || (index > (xSize-1)*zSize*2) && index%2 == 0 ) {// Left of Right Edge (Not including top left/bottom right corners because they are special cases
+			else if( index > 0 && index < (zSize*2-1) && index%2 == 1 || (index > (xSize-1)*zSize*2) && index%2 == 0 ) {// Left of Right Edge (Not including top left/bottom right corners because they are special cases
 				cells[index].SetEdge1 ( index+1 );
 				cells[index].SetEdge2 ( index-1 );
 			}
@@ -73,6 +73,16 @@ public class PathGraph : MonoBehaviour
 			}
 			else if( index == ((xSize-1)*zSize*2) ) {// Bottom right corner(1 edge)
 				cells[index].SetEdge1 ( index+1 );
+			}
+			else if( index == xSize*zSize*2 - 1 ) // special case index==max-1
+			{
+				cells[index].SetEdge1 ( index - 1 );
+				cells[index].SetEdge2 ( index - (2*zSize+1));
+			}
+			else if( index == 0 ) // special case index==0
+			{
+				cells[index].SetEdge1 ( index + 1 );
+				cells[index].SetEdge2 ( index + (zMax*2+1) );
 			}
 			else{
 				cells[index].SetEdge1 ( index+1 );
@@ -97,6 +107,7 @@ public class PathGraph : MonoBehaviour
 		int current; // index of current Node in path algorithm
 		int goal = CurrentCell ( targetPos ).GetIndex (); // Index of goal node
 		int kickoutCounter = 0; // after too many loops, algorithm is halted ( for debugging so that log will work)
+		int kickoutThreshold = 200; // max number of loops for right now.
 
 		int[] closedSet = new int[ numCells];
 		int[] openSet   = new int[ numCells]; // set of indices of tentative nodes to be evaluated
@@ -123,7 +134,7 @@ public class PathGraph : MonoBehaviour
 		bool isStart = true;
 		bool isInClosedSet = false;
 		bool isInOpenSet = false;
-		while (openSet[0] > -1 && kickoutCounter < 50) // set isnt empty
+		while (openSet[0] > -1 && kickoutCounter < kickoutThreshold ) // set isnt empty
 		{
 
 			kickoutCounter++;
@@ -225,12 +236,12 @@ public class PathGraph : MonoBehaviour
 	}
 
 	// Use this for initialization
-	void Start ()
+	void Start()
 	{
 		activeGraph = this;
+		xSize = 200;
+		zSize = 200;
 		localOrigin = new Vector2 (PlayerController.playerPos.x - 0.5f * (float)xSize, PlayerController.playerPos.z - 0.5f * (float)zSize );
-		xSize = 200; // Set this variable to be whatever works best for our game.
-		zSize = 200; // Same as above.
 		xMax = (int)localOrigin.x + xSize;
 		zMax = (int)localOrigin.y + zSize;
 		spaceIncrement = 1; // GetHeight() function in unity terrainData takes ints as arguments
@@ -250,15 +261,15 @@ public class PathGraph : MonoBehaviour
 	}
 	CellNode CurrentCell( Vector3 position)
 	{
-		float x = position.x - localOrigin.x;
-		float z = position.z - localOrigin.y;
-		int i = (int)x;
-		int k = (int)z;
-		x -= i; // gets decimal value of x
-		z -= k;  // gets decimal value of z
+		float xDec = position.x - localOrigin.x;
+		float zDec = position.z - localOrigin.y;
+		int i = (int)xDec;
+		int k = (int)zDec;
+		xDec -= i; // gets decimal value of x
+		zDec -= k;  // gets decimal value of z
 
 		int index;
-		if (z / x >= 1)
+		if (zDec / xDec >= 1)
 		{
 			index = ((i * zSize + k) * 2) + 1;
 		}

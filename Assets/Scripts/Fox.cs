@@ -15,12 +15,11 @@ public class Fox : MonoBehaviour {
 	float        epsilon; // How close to center of cell before it is counted as being there
 
 	// Use this for initialization
-	void Start()
+	void Awake()
 	{
 		// make mesh, collider, animation data, etc
 		aiPackage = ScriptableObject.CreateInstance<AnimalAI> ();
-		aiPackage.Awake ();
-		moveSpeed = 1000.0f;
+		moveSpeed = 55.0f;
 		body = GetComponent<Rigidbody> ();
 		currentPathIndex = 0;
 		epsilon = 0.2f;
@@ -28,7 +27,7 @@ public class Fox : MonoBehaviour {
 	}
 	
 	// Update is called once per frame
-	void Update () // TODO: selection of new paths that are in the path graph
+	void FixedUpdate () // TODO: selection of new paths that are in the path graph
 					// TODO: include logic into the new paths and when they are chosen and the speed at which traversed.
 	{
 		if( path != null )
@@ -46,7 +45,7 @@ public class Fox : MonoBehaviour {
 				{
 					directionFacing.x = path[currentPathIndex].x - this.transform.position.x;
 					directionFacing.z = path[currentPathIndex].y - this.transform.position.z;
-					directionFacing.y = 0;
+					directionFacing.y = 0.5f;
 					difference = directionFacing;
 					Vector3.Normalize (directionFacing);
 					body.AddForce ( directionFacing*moveSpeed*Time.deltaTime );
@@ -55,11 +54,7 @@ public class Fox : MonoBehaviour {
 				{
 					path = null;
 					currentPathIndex = 0;
-					directionFacing.x = path[currentPathIndex].x - this.transform.position.x;
-					directionFacing.z = path[currentPathIndex].y - this.transform.position.z;
-					directionFacing.y = 0;
-					difference = directionFacing;
-					Vector3.Normalize (directionFacing);
+
 				}
 			}
 		}
@@ -71,7 +66,7 @@ public class Fox : MonoBehaviour {
 				pathMaxIndex = path.Length;
 				directionFacing.x = path[currentPathIndex].x - this.transform.position.x;
 				directionFacing.z = path[currentPathIndex].y - this.transform.position.z;
-				directionFacing.y = 0;
+				directionFacing.y = 0.5f;
 				difference = directionFacing;
 				Vector3.Normalize (directionFacing);
 			}

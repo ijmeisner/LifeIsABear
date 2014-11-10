@@ -8,7 +8,6 @@ public class AnimalAI : ScriptableObject, BaseAI
 
 	public AnimalAI()
 	{
-		pathGraph = PathGraph.activeGraph;
 	}
 	public void smell() // TODO
 	{
@@ -29,10 +28,10 @@ public class AnimalAI : ScriptableObject, BaseAI
 		Vector2[] path;
 		path = null;
 		float currentTime = Time.time;
-		if( currentTime - lastDecisionTime > 15.0f)
+		if( true ) // true for debugging purposes
 		{
 			int[] pathIndices = null;
-			pathIndices = pathGraph.Astar ( currentPos, currentPos + new Vector3(2.0f, 0.0f, 2.0f));
+			pathIndices = pathGraph.Astar ( currentPos, currentPos + new Vector3(-5.0f, 0.0f, -5.0f));
 			int pathSize = 0;
 			if( pathIndices != null )
 			{
@@ -80,7 +79,7 @@ public class AnimalAI : ScriptableObject, BaseAI
 	public void Awake()
 	{
 		pathGraph = PathGraph.activeGraph;
-		lastDecisionTime = Time.time;
+		lastDecisionTime = Time.time - 15.0f;
 	}
 	public void Update()
 	{
