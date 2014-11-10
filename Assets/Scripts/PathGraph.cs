@@ -7,19 +7,20 @@ using System.Collections;
 */
 public class PathGraph : MonoBehaviour
 {
-	Vector2        localOrigin;           // Origin that this is specified from in World Space.
-	Terrain        sceneTerrain;          // The terrain of the scene of this path graph.
-	float[,]       vertices;              // All the different shared corners of the different cells
-	CellNode[]     cells;                 // The Graph starts at the bottom-left cell
-	int            numVerts;              // Current Number of Verts.
-	int            numCells;              // Current Number of Cells.
-	int            xSize;                 // Size in x direction.
-	int            zSize;                 // Size in z direction.
-	int            xMax;                  // TODO: decide the x size of terrains
-	int            zMax;                  // TODO: decide the z size of terrains
-	int            spaceIncrement;        // The density of terrain points to use for pathgraph generation
-	float          spaceIncrementInverse; // 1/spaceIncrement
-	public static PathGraph activeGraph;  // Holds a handle to the active PathGraph
+	Vector2                 localOrigin;           // Origin that this is specified from in World Space.
+	Terrain                 sceneTerrain;          // The terrain of the scene of this path graph.
+	float[,]                vertices;              // All the different shared corners of the different cells
+	CellNode[]              cells;                 // The Graph starts at the bottom-left cell
+	int                     numVerts;              // Current Number of Verts.
+	int                     numCells;              // Current Number of Cells.
+	int                     xSize;                 // Size in x direction.
+	int                     zSize;                 // Size in z direction.
+	int                     xMax;                  // TODO: decide the x size of terrains
+	int                     zMax;                  // TODO: decide the z size of terrains
+	int                     spaceIncrement;        // The density of terrain points to use for pathgraph generation
+	float                   spaceIncrementInverse; // 1/spaceIncrement
+	public static Vector2   activeLocalOrigin;     // Holds the local origin of the active pathgraph
+	public static PathGraph activeGraph;           // Holds a handle to the active PathGraph
 
 	public PathGraph()
 	{
@@ -56,11 +57,13 @@ public class PathGraph : MonoBehaviour
 		int index = 0;
 		while( index < xSize*zSize*2 )
 		{
+			/*
 			// DEBUG
 			Vector3 cellPos = cells[index].GetCenter ();
 			Debug.Log ( "Current Cell: " + index );
 			Debug.Log ( "Cell Center: " + cellPos.x + " " + cellPos.y + " " + cellPos.z );
 			// END DEBUG
+			*/
 			if( index%(zSize*2) == 0 && index != (xSize-1)*zSize*2 ) {// bottom edge
 				cells[index].SetEdge1 ( index+1 );
 				cells[index].SetEdge2 ( index+((2*zSize)+1) );
@@ -99,6 +102,7 @@ public class PathGraph : MonoBehaviour
 					cells[index].SetEdge3 ( index-((2*zSize)+1) );
 				}
 			}
+			/*
 			// DEBUG
 			int[] edges = cells[index].Edges ();
 			Debug.Log ( " edges[0]: " + edges[0] );
@@ -122,6 +126,7 @@ public class PathGraph : MonoBehaviour
 				Debug.Log ( "Edge 3 Center: " + edge3Pos.x + " " + edge3Pos.y + " " + edge3Pos.z );
 			}
 			// END DEBUG
+			*/
 			index ++;
 		}
 	}
@@ -131,7 +136,7 @@ public class PathGraph : MonoBehaviour
 		int numCells = (int)(xSize * spaceIncrementInverse * zSize * spaceIncrementInverse * 2); // number of cells.
 		int openSetIndex = 0;
 		int closedSetIndex = 0;
-		int start = CurrentCell (currentPos).GetIndex();
+		int start = CurrentCell (currentPos).GetIndex(); // Index of starting node
 		int current; // index of current Node in path algorithm
 		int goal = CurrentCell ( targetPos ).GetIndex (); // Index of goal node
 		int kickoutCounter = 0; // after too many loops, algorithm is halted ( for debugging so that log will work)
@@ -162,7 +167,13 @@ public class PathGraph : MonoBehaviour
 		bool isStart = true;
 		bool isInClosedSet = false;
 		bool isInOpenSet = false;
-		while (openSet[0] > -1 && kickoutCounter < kickoutThreshold ) // set isnt empty
+		// DEBUG
+		Debug.Log ( " Goal position: " + targetPos.x + " " + targetPos.y + " " + targetPos.z );
+		Debug.Log ( " Goal index: " + goal );
+		Debug.Log ( " Start position: " + currentPos.x + " " + currentPos.y + " " + currentPos.z );
+		Debug.Log ( " Start index: " + start );
+		// END DEBUG
+		while (openSet[0] > -1 ) // set isnt empty
 		{
 
 			kickoutCounter++;
@@ -184,6 +195,7 @@ public class PathGraph : MonoBehaviour
 			}
 			if( current == goal)
 			{
+				Debug.Log ( "ReconstructPath()!!" );
 				return ReconstructPath ( cameFrom, goal );
 			}
 			closedSet[closedSetIndex] = current;
@@ -191,7 +203,7 @@ public class PathGraph : MonoBehaviour
 			int[] edgeIndices = new int[3];        // holds the neighbor verts cells indices of current
 			edgeIndices = cells[current].Edges ();
 
-			for ( int i = 0; i < 3 && edgeIndices[i] > -1 && kickoutCounter < 50; i++ )
+			for ( int i = 0; i < 3 && edgeIndices[i] > -1; i++ )
 			{
 				float tentativeGScore = 0; // Temporary score that only matters if it is less than the current gscore for a node or the node had no previous gscore
 				isInClosedSet = false; // is a neighbor already in the closedSet
@@ -256,6 +268,7 @@ public class PathGraph : MonoBehaviour
 		}
 		else
 		{
+			Debug.Log ( " cameFrom[currentNodeIndex]: " + cameFrom[currentNodeIndex] );
 			path = new int[1];
 			path[0] = -3; // -3 is Error Code ( meaning the goal was where the agent started)
 		}
@@ -266,10 +279,11 @@ public class PathGraph : MonoBehaviour
 	// Use this for initialization
 	void Start()
 	{
-		activeGraph = this;
+		activeGraph = this; // TEMPORARY FIX!!!!!!
 		xSize = 20;
 		zSize = 20;
 		localOrigin = new Vector2 (PlayerController.playerPos.x - 0.5f * (float)xSize, PlayerController.playerPos.z - 0.5f * (float)zSize );
+		activeLocalOrigin = localOrigin; // TEMPORARY FIX!!!!!!
 		xMax = (int)localOrigin.x + xSize;
 		zMax = (int)localOrigin.y + zSize;
 		spaceIncrement = 1; // GetHeight() function in unity terrainData takes ints as arguments

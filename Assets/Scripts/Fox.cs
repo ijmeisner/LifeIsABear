@@ -41,7 +41,7 @@ public class Fox : MonoBehaviour {
 			else
 			{
 				currentPathIndex++;
-				if( currentPathIndex < pathMaxIndex )
+				if( currentPathIndex < pathMaxIndex-1 )
 				{
 					directionFacing.x = path[currentPathIndex].x - this.transform.position.x;
 					directionFacing.z = path[currentPathIndex].y - this.transform.position.z;
@@ -64,11 +64,21 @@ public class Fox : MonoBehaviour {
 			if(path != null)
 			{
 				pathMaxIndex = path.Length;
+				// DEBUG
+				for( int i = 0; i< pathMaxIndex; i ++)
+				{
+					Debug.Log ( " path[" + i + "]:" + path[i].x + " " + path[i].y );
+				}
+				// END DEBUG
 				directionFacing.x = path[currentPathIndex].x - this.transform.position.x;
 				directionFacing.z = path[currentPathIndex].y - this.transform.position.z;
 				directionFacing.y = 0.5f;
 				difference = directionFacing;
 				Vector3.Normalize (directionFacing);
+			}
+			else
+			{
+				Debug.Log ( " Null Path!!" );
 			}
 		}
 	}

@@ -48,6 +48,7 @@ public class AnimalAI : ScriptableObject, BaseAI
 				for( i = 0; i < pathSize; i++ )
 				{
 					path[i] = new Vector2( pathGraph.CurrentCell( pathIndices[i]).GetCenter().x, pathGraph.CurrentCell ( pathIndices[i]).GetCenter ().z );
+					path[i] += PathGraph.activeLocalOrigin; // must take into account offset of pathgraph
 				}
 				lastDecisionTime = Time.time;
 			}
