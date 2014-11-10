@@ -56,6 +56,11 @@ public class PathGraph : MonoBehaviour
 		int index = 0;
 		while( index < xSize*zSize*2 )
 		{
+			// DEBUG
+			Vector3 cellPos = cells[index].GetCenter ();
+			Debug.Log ( "Current Cell: " + index );
+			Debug.Log ( "Cell Center: " + cellPos.x + " " + cellPos.y + " " + cellPos.z );
+			// END DEBUG
 			if( index%(zSize*2) == 0 && index != (xSize-1)*zSize*2 ) {// bottom edge
 				cells[index].SetEdge1 ( index+1 );
 				cells[index].SetEdge2 ( index+((2*zSize)+1) );
@@ -94,6 +99,29 @@ public class PathGraph : MonoBehaviour
 					cells[index].SetEdge3 ( index-((2*zSize)+1) );
 				}
 			}
+			// DEBUG
+			int[] edges = cells[index].Edges ();
+			Debug.Log ( " edges[0]: " + edges[0] );
+			if( edges[0] > 0 )
+			{
+				Vector3 edge1Pos = cells[edges[0]].GetCenter ();
+				Debug.Log ( "Edge 1 Center: " + edge1Pos.x + " " + edge1Pos.y + " " + edge1Pos.z );
+			}
+
+			Debug.Log ( " edges[1]: " + edges[1] );
+			if( edges[1] > 0 )
+			{
+				Vector3 edge2Pos = cells[edges[1]].GetCenter ();
+				Debug.Log ( " Edge 2 Center: " + edge2Pos.x + " " + edge2Pos.y + " " + edge2Pos.z );
+			}
+
+			Debug.Log ( " edges[2]: " + edges[2] );
+			if( edges[2] > 0 )
+			{
+				Vector3 edge3Pos = cells[edges[2]].GetCenter ();
+				Debug.Log ( "Edge 3 Center: " + edge3Pos.x + " " + edge3Pos.y + " " + edge3Pos.z );
+			}
+			// END DEBUG
 			index ++;
 		}
 	}
@@ -239,8 +267,8 @@ public class PathGraph : MonoBehaviour
 	void Start()
 	{
 		activeGraph = this;
-		xSize = 200;
-		zSize = 200;
+		xSize = 20;
+		zSize = 20;
 		localOrigin = new Vector2 (PlayerController.playerPos.x - 0.5f * (float)xSize, PlayerController.playerPos.z - 0.5f * (float)zSize );
 		xMax = (int)localOrigin.x + xSize;
 		zMax = (int)localOrigin.y + zSize;

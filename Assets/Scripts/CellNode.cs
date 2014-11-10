@@ -3,15 +3,15 @@ using System.Collections;
 
 public class CellNode
 {
-	Vector2[] vertIndices; // Indices into vector3 array that are the verts of the cell.
-	Vector3   normal;      // Vector normal to this face of the graph. (Not necessary for
-	                       // Graph where all Nodes are level)
-	int[]     linkedNodes; // The indices of the (possibly 3) connected Nodes
-	Vector3 cellCenter;    // Center of this Triangle
-	int clearanceHeight;   // How tall something can be and still use this polygon.
-	public bool navigable; // Is this polygon navigable?
-	bool preferable;       // Is this node difficult to traverse
-	int index;             // Index into 'cells' of PathGraph container
+	Vector2[]   vertIndices;     // Indices into vector3 array that are the verts of the cell.
+	Vector3     normal;          // Vector normal to this face of the graph. (Not necessary for
+	                             // Graph where all Nodes are level)
+	int[]       linkedNodes;     // The indices of the (possibly 3) connected Nodes
+	Vector3     cellCenter;      // Center of this Triangle
+	int         clearanceHeight; // How tall something can be and still use this polygon.
+	public bool navigable;       // Is this polygon navigable?
+	bool        preferable;      // Is this node difficult to traverse
+	int         index;           // Index into 'cells' of PathGraph container
 
 	public CellNode(){
 		vertIndices = new Vector2[3];
@@ -25,6 +25,7 @@ public class CellNode
 		cellCenter.x += vertIndices [1].x;
 		cellCenter.x += vertIndices [2].x;
 		cellCenter.x /= 3;
+
 		cellCenter.z = vertIndices [0].y;
 		cellCenter.z += vertIndices [1].y;
 		cellCenter.z += vertIndices [2].y;
@@ -37,8 +38,8 @@ public class CellNode
 		Vector3 b; // used to calculate normal vector
 		vertIndices = new Vector2[3];
 		vertIndices [0] = new Vector2(vert1.x,vert1.z);
-		vertIndices [0] = new Vector2(vert2.x,vert2.z);
-		vertIndices [0] = new Vector2(vert3.x,vert3.z);
+		vertIndices [1] = new Vector2(vert2.x,vert2.z);
+		vertIndices [2] = new Vector2(vert3.x,vert3.z);
 		a = new Vector3 (vert1.x - vert2.x, vert1.y - vert2.y, vert1.z - vert2.z);
 		b = new Vector3 (vert1.x - vert3.x, vert1.y - vert3.y, vert1.z - vert3.z);
 		normal = Vector3.Cross ( a, b);
@@ -49,10 +50,12 @@ public class CellNode
 		cellCenter.x += vertIndices [1].x;
 		cellCenter.x += vertIndices [2].x;
 		cellCenter.x /= 3;
-		cellCenter.y = vertIndices [0].y;
-		cellCenter.y += vertIndices [1].y;
-		cellCenter.y += vertIndices [2].y;
+		cellCenter.y = vert1.y + vert2.y + vert3.y;
 		cellCenter.y /= 3;
+		cellCenter.z = vertIndices [0].y;
+		cellCenter.z += vertIndices [1].y;
+		cellCenter.z += vertIndices [2].y;
+		cellCenter.z /= 3;
 		index = srcIndex;
 
 	}
