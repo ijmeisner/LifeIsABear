@@ -70,7 +70,7 @@ public class PlayerController : MonoBehaviour
 		m_weightModifier = m_playerRigidbody.mass;
 
 		// Player doesn't fall onto side
-		m_playerRigidbody.centerOfMass = new Vector3(0.0f, -0.5f,0.0f); // adjust for new model size when added
+		m_playerRigidbody.centerOfMass = new Vector3(0.0f, -0.5f,0.0f);
 	}
 
 	void FixedUpdate()

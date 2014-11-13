@@ -4,6 +4,7 @@
 
 using UnityEngine;
 using System.Collections;
+using System;
 
 public class TerrainControl : MonoBehaviour {
 
@@ -13,16 +14,20 @@ public class TerrainControl : MonoBehaviour {
 	// make sure stuff on disabled terrain gets disabled first (easiest way to make them child of it)
 	// add random terrain prefab selection once we have prefabs and know this works
 	// adjust to have initial terrain be instantiated also
+	// randomly generate beehives and stuff
+	// replace terrainData array with two-key dictionary for more efficiency?
+	// rename chunksLoaded to chunksCreated
 
 	// potential for slowdown and/or high memory use when map gets generated really big
 	// (at least in similar but more extreme cases of dynamic terrain, don't know how much of impact in this game):
 	//   consider storing megachunks in files and only keeping one megachunk of data in the game memory
 	//   but will have to keep several megachunks loaded so that it is seamless moving between them
 
+	[Serializable]
 	public struct chunkData
 	{
-		public Terrain data;
-		public int x,z;
+		public int data;
+		public int x, z;
 	}
 
 	// Public:
@@ -36,14 +41,17 @@ public class TerrainControl : MonoBehaviour {
 	// -
 
 	// Private
+	private Terrain[] terrainData;
 	private int m_terrainSize;
 	private float m_farClip;
 	private float m_loadRange; // make at least as big as farClip
 	private float m_unloadRange; // make at least as big as farclip
 	private int m_xPlayerChunk, m_zPlayerChunk;
+
 	private Transform m_cameraTransform;
 
 	private int i;
+	// private Terrain m_terrainRef;
 	// -
 	
 	void Awake()
@@ -57,219 +65,234 @@ public class TerrainControl : MonoBehaviour {
 
 		m_cameraTransform = playerCamera.transform;
 
+		// initialize data
 		terrainList = new chunkData[512];
+		// check if created already or not, if negative data index, has not (CHECK TO MAKE SURE NO NEG INDEX HAPPENS!)
+		{
+			for(i=0; i<512; i++)
+			{
+				terrainList[i].data = -1;
+			}
+		}
+		terrainData = new Terrain[512];
+	}
 
+	void Start()
+	{
+		createTerrain(0, m_xPlayerChunk, m_zPlayerChunk);
 		loadTerrains();
 		StartCoroutine(checkTerrain());
 	}
 
-	/*
-	void Update()
-	{
-	
-	}
-	*/
+	// ---
+	// --------------------
+	// ---
 
 	// load terrain when it comes into range
-	void loadTerrains() // TODO make more efficient, in desperate need of it, also doesn't use m_loadRange
+	void loadTerrains() // TODO make more efficient, change to use m_loadRange
 	{
-		// holds if chunks around yours are loaded (so only search once), 0 starts at top, then clockwise
+		int j=0;
+
+		// holds if chunks around yours are created (so only search once), 0 starts at top, then clockwise
 		bool[] chunksLoaded = new bool[] {false, false, false, false, false, false, false, false};
 
-		// get values for bool chunksLoaded
-		for(i=0; i<512 && terrainList[i].data!=null; i++)
+		// get values for bool chunksLoaded, and enable if disabled and already created
+		for(i=0; i<512 && terrainList[i].data>=0; i++)
 		{
 			if(terrainList[i].x==m_xPlayerChunk && terrainList[i].z==m_zPlayerChunk+1)
 			{
 				chunksLoaded[0] = true;
+				if(!terrainData[i].gameObject.activeSelf)
+				{
+					terrainData[i].gameObject.SetActive(true);
+				}
 			}
-			if(terrainList[i].x==m_xPlayerChunk+1 && terrainList[i].z==m_zPlayerChunk+1)
+			else if(terrainList[i].x==m_xPlayerChunk+1 && terrainList[i].z==m_zPlayerChunk+1)
 			{
 				chunksLoaded[1] = true;
+				if(!terrainData[i].gameObject.activeSelf)
+				{
+					terrainData[i].gameObject.SetActive(true);
+				}
 			}
-			if(terrainList[i].x==m_xPlayerChunk+1 && terrainList[i].z==m_zPlayerChunk)
+			else if(terrainList[i].x==m_xPlayerChunk+1 && terrainList[i].z==m_zPlayerChunk)
 			{
 				chunksLoaded[2] = true;
+				if(!terrainData[i].gameObject.activeSelf)
+				{
+					terrainData[i].gameObject.SetActive(true);
+				}
 			}
-			if(terrainList[i].x==m_xPlayerChunk+1 && terrainList[i].z==m_zPlayerChunk-1)
+			else if(terrainList[i].x==m_xPlayerChunk+1 && terrainList[i].z==m_zPlayerChunk-1)
 			{
 				chunksLoaded[3] = true;
+				if(!terrainData[i].gameObject.activeSelf)
+				{
+					terrainData[i].gameObject.SetActive(true);
+				}
 			}
-			if(terrainList[i].x==m_xPlayerChunk && terrainList[i].z==m_zPlayerChunk-1)
+			else if(terrainList[i].x==m_xPlayerChunk && terrainList[i].z==m_zPlayerChunk-1)
 			{
 				chunksLoaded[4] = true;
+				if(!terrainData[i].gameObject.activeSelf)
+				{
+					terrainData[i].gameObject.SetActive(true);
+				}
 			}
-			if(terrainList[i].x==m_xPlayerChunk-1 && terrainList[i].z==m_zPlayerChunk-1)
+			else if(terrainList[i].x==m_xPlayerChunk-1 && terrainList[i].z==m_zPlayerChunk-1)
 			{
 				chunksLoaded[5] = true;
+				if(!terrainData[i].gameObject.activeSelf)
+				{
+					terrainData[i].gameObject.SetActive(true);
+				}
 			}
-			if(terrainList[i].x==m_xPlayerChunk-1 && terrainList[i].z==m_zPlayerChunk)
+			else if(terrainList[i].x==m_xPlayerChunk-1 && terrainList[i].z==m_zPlayerChunk)
 			{
 				chunksLoaded[6] = true;
+				if(!terrainData[i].gameObject.activeSelf)
+				{
+					terrainData[i].gameObject.SetActive(true);
+				}
 			}
-			if(terrainList[i].x==m_xPlayerChunk-1 && terrainList[i].z==m_zPlayerChunk+1)
+			else if(terrainList[i].x==m_xPlayerChunk-1 && terrainList[i].z==m_zPlayerChunk+1)
 			{
 				chunksLoaded[7] = true;
+				if(!terrainData[i].gameObject.activeSelf)
+				{
+					terrainData[i].gameObject.SetActive(true);
+				}
 			}
 		}
 
-		// take edges not existing and instantiate then add to list
-		if(i<512)
-		{
-			if(!chunksLoaded[0])
-			{
-				terrainList[i].x = m_xPlayerChunk;
-				terrainList[i].z = m_zPlayerChunk+1;
-				terrainList[i].data = Instantiate(terrainPrefabs[0],
-				                                  new Vector3(terrainList[i].x*m_terrainSize-1000,
-				            								  0,
-				            								  terrainList[i].z*m_terrainSize-1000),
-				                                  Quaternion.identity) as Terrain;
+		j=i;
 
-				terrainList[i].data.transform.parent = environment;
-				i++;
-			}
-			if(!chunksLoaded[1])
-			{
-				terrainList[i].x = m_xPlayerChunk+1;
-				terrainList[i].z = m_zPlayerChunk+1;
-				terrainList[i].data = Instantiate(terrainPrefabs[0],
-				                                  new Vector3(terrainList[i].x*m_terrainSize-1000,
-				            								0,
-				            								terrainList[i].z*m_terrainSize-1000),
-				                                  Quaternion.identity) as Terrain;
-				terrainList[i].data.transform.parent = environment;
-				i++;
-			}
-			if(!chunksLoaded[2])
-			{
-				terrainList[i].x = m_xPlayerChunk+1;
-				terrainList[i].z = m_zPlayerChunk;
-				terrainList[i].data = Instantiate(terrainPrefabs[0],
-				                                  new Vector3(terrainList[i].x*m_terrainSize-1000,
-				            								0,
-				            								terrainList[i].z*m_terrainSize-1000),
-				                                  Quaternion.identity) as Terrain;
-				terrainList[i].data.transform.parent = environment;
-				i++;
-			}
-			if(!chunksLoaded[3])
-			{
-				terrainList[i].x = m_xPlayerChunk+1;
-				terrainList[i].z = m_zPlayerChunk-1;
-				terrainList[i].data = Instantiate(terrainPrefabs[0],
-				                                  new Vector3(terrainList[i].x*m_terrainSize-1000,
-				            								0,
-				            								terrainList[i].z*m_terrainSize-1000),
-				                                  Quaternion.identity) as Terrain;
-				terrainList[i].data.transform.parent = environment;
-				i++;
-			}
-			if(!chunksLoaded[4])
-			{
-				terrainList[i].x = m_xPlayerChunk;
-				terrainList[i].z = m_zPlayerChunk-1;
-				terrainList[i].data = Instantiate(terrainPrefabs[0],
-				                                  new Vector3(terrainList[i].x*m_terrainSize-1000,
-				            								0,
-				            								terrainList[i].z*m_terrainSize-1000),
-				                                  Quaternion.identity) as Terrain;
-				terrainList[i].data.transform.parent = environment;
-				i++;
-			}
-			if(!chunksLoaded[5])
-			{
-				terrainList[i].x = m_xPlayerChunk-1;
-				terrainList[i].z = m_zPlayerChunk-1;
-				terrainList[i].data = Instantiate(terrainPrefabs[0],
-				                                  new Vector3(terrainList[i].x*m_terrainSize-1000,
-				            								0,
-				            								terrainList[i].z*m_terrainSize-1000),
-				                                  Quaternion.identity) as Terrain;
-				terrainList[i].data.transform.parent = environment;
-				i++;
-			}
-			if(!chunksLoaded[6])
-			{
-				terrainList[i].x = m_xPlayerChunk-1;
-				terrainList[i].z = m_zPlayerChunk;
-				terrainList[i].data = Instantiate(terrainPrefabs[0],
-				                                  new Vector3(terrainList[i].x*m_terrainSize-1000,
-				            								0,
-				            								terrainList[i].z*m_terrainSize-1000),
-				                                  Quaternion.identity) as Terrain;
-				terrainList[i].data.transform.parent = environment;
-				i++;
-			}
-			if(!chunksLoaded[7])
-			{
-				terrainList[i].x = m_xPlayerChunk-1;
-				terrainList[i].z = m_zPlayerChunk+1;
-				terrainList[i].data = Instantiate(terrainPrefabs[0],
-				                                  new Vector3(terrainList[i].x*m_terrainSize-1000,
-				            								0,
-				            								terrainList[i].z*m_terrainSize-1000),
-				                                  Quaternion.identity) as Terrain;
-				terrainList[i].data.transform.parent = environment;
-				i++;
-			}
+		// create terrains around you (createTerrain function checks if already done)
+		if(!chunksLoaded[0] && j<512)
+		{
+			createTerrain(j, m_xPlayerChunk, m_zPlayerChunk+1);
+			j++;
+		}
+		if(!chunksLoaded[1] && j<512)
+		{
+			createTerrain(j, m_xPlayerChunk+1, m_zPlayerChunk+1);
+			j++;
+		}
+		if(!chunksLoaded[2] && j<512)
+		{
+			createTerrain(j, m_xPlayerChunk+1, m_zPlayerChunk);
+			j++;
+		}
+		if(!chunksLoaded[3] && j<512)
+		{
+			createTerrain(j, m_xPlayerChunk+1, m_zPlayerChunk-1);
+			j++;
+		}
+		if(!chunksLoaded[4] && j<512)
+		{
+			createTerrain(j, m_xPlayerChunk, m_zPlayerChunk-1);
+			j++;
+		}
+		if(!chunksLoaded[5] && j<512)
+		{
+			createTerrain(j, m_xPlayerChunk-1, m_zPlayerChunk-1);
+			j++;
+		}
+		if(!chunksLoaded[6] && j<512)
+		{
+			createTerrain(j, m_xPlayerChunk-1, m_zPlayerChunk);
+			j++;
+		}
+		if(!chunksLoaded[7] && j<512)
+		{
+			createTerrain(j, m_xPlayerChunk-1, m_zPlayerChunk+1);
+			j++;
 		}
 
-
-
-
-		for(i=0; i<512 && terrainList[i].data!=null; i++)
+		// now set the neighbors of terrains
+		for(i=0; i<512 && terrainList[i].data>=0; i++)
 		{
-			setChunkNeighbors(terrainList[i]);
+			setChunkNeighbors(terrainList[i], terrainData);
 		}
 	}
-
+	
 	// unload terrain when it gets far away
 	void unloadTerrains() // TODO make it actually unload the data and not just disable, not needed right now
 	{
-		for(i=0; i<512 && terrainList[i].data!=null; i++)
+		for(i=0; i<512 && terrainList[i].data>=0; i++)
 		{
 			if(terrainList[i].x*m_terrainSize > (m_cameraTransform.position.x+m_unloadRange)
 			   || terrainList[i].x*m_terrainSize < (m_cameraTransform.position.x-m_unloadRange)
 			   || terrainList[i].z*m_terrainSize > (m_cameraTransform.position.z+m_unloadRange)
 			   || terrainList[i].z*m_terrainSize < (m_cameraTransform.position.z-m_unloadRange)
-			   && terrainList[i].data.gameObject.activeSelf)
+			   && terrainData[i].gameObject.activeSelf)
 			{
-				terrainList[i].data.gameObject.SetActive(false);
-				Debug.Log("Something Unloaded");
+				terrainData[i].gameObject.SetActive(false);
+				Debug.Log("Some Terrain Unloaded");
 			}
 		}
 	}
 
 	// set the neighbors of a chunk
-	void setChunkNeighbors(chunkData chunk) // TODO this needs to be more efficient
+	void setChunkNeighbors(chunkData chunk, Terrain[] terrains) // TODO this needs to be more efficient, try dictionary
 	{
 		Terrain left, right, up, down;
-		left = new Terrain(); right = new Terrain(); up = new Terrain(); down = new Terrain();
-		for(i=0; i<512 && terrainList[i].data!=null; i++)
+		left = right = up = down = null;
+
+		// left = new Terrain(); right = new Terrain(); up = new Terrain(); down = new Terrain();
+		for(i=0; i<512 && terrainList[i].data>=0; i++)
 		{
 			if(terrainList[i].x==chunk.x+1 && terrainList[i].z==chunk.z)
 			{
-				right = terrainList[i].data;
+				right = terrainData[i];
 			}
-			if(terrainList[i].x==chunk.x-1 && terrainList[i].z==chunk.z)
+			else if(terrainList[i].x==chunk.x-1 && terrainList[i].z==chunk.z)
 			{
-				left = terrainList[i].data;
+				left = terrainData[i];
 			}
-			if(terrainList[i].x==chunk.x && terrainList[i].z==chunk.z+1)
+			else if(terrainList[i].x==chunk.x && terrainList[i].z==chunk.z+1)
 			{
-				up = terrainList[i].data;
+				up = terrainData[i];
 			}
-			if(terrainList[i].x==chunk.x && terrainList[i].z==chunk.z-1)
+			else if(terrainList[i].x==chunk.x && terrainList[i].z==chunk.z-1)
 			{
-				down = terrainList[i].data;
+				down = terrainData[i];
 			}
-		}
-		if(left!=null && up!=null && right!=null && down!=null)
-		{
-			chunk.data.SetNeighbors(left, up, right, down);
+
+			if(left!=null && up!=null && right!=null && down!=null)
+			{
+				terrainData[i].SetNeighbors(left, up, right, down);
+			}
+			left = right = up = down = null;
 		}
 	}
+
+	// instantiate terrain and add to list
+	Terrain createTerrain(int i, int x, int z)
+	{
+		Terrain terrainRef = null;
+		terrainList[i].x = x;
+		terrainList[i].z = z;
+		if(terrainData[i]!=null)
+		{
+			return terrainData[i];
+		}
+		terrainList[i].data = UnityEngine.Random.Range(0, terrainPrefabs.Length);
+		terrainRef = Instantiate(terrainPrefabs[terrainList[i].data],
+		                         new Vector3(terrainList[i].x*m_terrainSize-1000,
+		            0,
+		            terrainList[i].z*m_terrainSize-1000),
+		                         Quaternion.identity) as Terrain;
+		
+		terrainRef.transform.parent = environment;
+		terrainData[i] = terrainRef;
+
+		return terrainRef;
+	}
+
+	// ---
+	// --------------------
+	// ---
 
 	// Check if need to load or unload
 	IEnumerator checkTerrain()
@@ -277,7 +300,7 @@ public class TerrainControl : MonoBehaviour {
 		int xNew, zNew;
 		while(true)
 		{
-			// don't need to do anything if player is in same chunk
+			// don't need to do anything if player is still in same chunk
 			xNew = ((int)(m_cameraTransform.position.x + (m_terrainSize/2.0f)))/m_terrainSize;
 			zNew = ((int)(m_cameraTransform.position.z + (m_terrainSize/2.0f)))/m_terrainSize;
 			while(xNew==m_xPlayerChunk && zNew==m_zPlayerChunk)

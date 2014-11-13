@@ -9,7 +9,7 @@ public class CameraController : MonoBehaviour {
 
 	// TODO
 	// Prevent from going through things it shouldn't
-	// find a way to "lerp" camera rotation without breaking it
+	// find a way to smooth camera rotation without breaking it
 
 	// Public:
 	public Transform player;

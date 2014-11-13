@@ -1,5 +1,6 @@
 ﻿//
 // Game Controller
+// MAKE SURE THIS SCRIPT IS ORDERED LAST SO THAT SAVE DATA IS LOADED CORRECTLY
 //
 
 using UnityEngine;
@@ -40,24 +41,23 @@ public class GameController : MonoBehaviour {
 		isDay = true;
 		StartCoroutine(dayNight());
 		StartCoroutine(weather());
-		StartCoroutine(autosave());
 
-		// SaveGame.load();
+		// If gamecontroller isn't loaded last, save data might be overwritten by instantiations
+		SaveGame.load();
 	}
 
 	void Update()
 	{
 		if(Input.GetKeyDown(KeyCode.Escape)) // remove this when menu to quit with is added
 		{
-			// SAVE
 			Application.Quit();
 		}
 	}
 
 	void OnApplicationQuit()
 	{
-		// SAVE
-		// SaveGame.save();
+		// SAVE on exit
+		SaveGame.save();
 	}
 
 	// ---
@@ -173,12 +173,5 @@ public class GameController : MonoBehaviour {
 				yield return null;
 			}
 		}
-	}
-
-	IEnumerator autosave()
-	{
-		//SaveGame.save();
-		yield return new WaitForSeconds(300);
-		Debug.Log("Autosaving");
 	}
 }
