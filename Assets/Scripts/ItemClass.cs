@@ -1,33 +1,30 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class ItemClass : MonoBehaviour {
+// Does not need to be attached in Unity
+public class ItemClass {
 	// Create new items here
-	public ItemCreatorClass beehiveItem = new ItemCreatorClass(0,"Beehive", "expected...");
-
-	// Use this for initialization
-	void Awake () {
-	
-	}
-	
-	// Update is called once per frame
-	void Update () {
-	
-	}
-
+	// TODO initialize canPickUp and canThrow values to items
+	public ItemCreatorClass beehiveItem = new ItemCreatorClass(0,"Beehive", false, "OUCH!"/*, true, true*/);
+	public ItemCreatorClass picnicItem = new ItemCreatorClass(1, "Basket", true, "Yummy!"/*,false, false*/);
+	public ItemCreatorClass berryItem = new ItemCreatorClass(2, "Berries", true, "Juicy!"/*false, false*/);
+	public ItemCreatorClass rockItem = new ItemCreatorClass (3, "Rock", false, "Hmmm")/*, true, true*/;
 
 	public class ItemCreatorClass{
 		public int id;
 		public string name;
+		public bool edible;
 		public string description;
-		// Constructor
-		public ItemCreatorClass(int ide, string nam, string des)
+		//public bool canPickUp;
+		//public bool canThrow;
+
+		public ItemCreatorClass(int ide, string nam, bool eat, string des)
 		{
 			id = ide;
 			name = nam;
+			edible = eat;
 			description = des;
 		}
-
-		~ItemCreatorClass(){} // Destructor
 	}
+
 }

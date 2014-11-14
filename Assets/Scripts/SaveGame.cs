@@ -44,7 +44,7 @@ public class SaveGame : MonoBehaviour {
 		GameData data = new GameData();
 
 		Debug.Log(Application.persistentDataPath);
-		FileStream file = File.Create(Application.persistentDataPath + "/playerInfo.dat"); // or whatever file name
+		FileStream file = File.Create(Application.persistentDataPath + "/GameInfo.dat"); // or whatever file name
 
 		// DATA TO BE SAVED:
 		playerPosition.x = player.transform.position.x;
@@ -63,12 +63,12 @@ public class SaveGame : MonoBehaviour {
 
 	public static void load()
 	{
-		if(File.Exists(Application.persistentDataPath + "/playerInfo.dat"))
+		if(File.Exists(Application.persistentDataPath + "/GameInfo.dat"))
 		{
 			GameObject player = GameObject.Find("Player");
 
 			BinaryFormatter bf = new BinaryFormatter();
-			FileStream file = File.Open(Application.persistentDataPath + "/playerInfo.dat", FileMode.Open);
+			FileStream file = File.Open(Application.persistentDataPath + "/GameInfo.dat", FileMode.Open);
 			GameData data  = (GameData)bf.Deserialize(file); // check casting
 
 			// DATA TO BE LOADED:
@@ -76,7 +76,7 @@ public class SaveGame : MonoBehaviour {
 			                                        data.m_playerPosition.y,
 			                                        data.m_playerPosition.z);
 
-			TerrainControl.terrainList = data.m_terrainList;
+			//TerrainControl.terrainList = data.m_terrainList;
 			// ----------
 
 			file.Close();

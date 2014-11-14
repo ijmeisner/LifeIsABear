@@ -46,19 +46,36 @@
 	</Reference>
   </ItemGroup>
   <ItemGroup>
+     <Compile Include="Assets\Scripts\AiPackages\FoxAi.cs" />
+     <Compile Include="Assets\Scripts\AiRandom.cs" />
      <Compile Include="Assets\Scripts\AnimalAI.cs" />
      <Compile Include="Assets\Scripts\BaseAI.cs" />
+     <Compile Include="Assets\Scripts\BeehiveItems.cs" />
+     <Compile Include="Assets\Scripts\BerryItems.cs" />
      <Compile Include="Assets\Scripts\CameraController.cs" />
      <Compile Include="Assets\Scripts\CellNode.cs" />
+     <Compile Include="Assets\Scripts\Factories\AiAgentFactory.cs" />
+     <Compile Include="Assets\Scripts\Factories\MovementControllerFactory.cs" />
+     <Compile Include="Assets\Scripts\Fox.cs" />
      <Compile Include="Assets\Scripts\GameController.cs" />
+     <Compile Include="Assets\Scripts\Interfaces\IAiAgent.cs" />
+     <Compile Include="Assets\Scripts\Interfaces\IAiPackage.cs" />
+     <Compile Include="Assets\Scripts\Interfaces\IMovementController.cs" />
      <Compile Include="Assets\Scripts\ItemClass.cs" />
+     <Compile Include="Assets\Scripts\ItemEquip.cs" />
      <Compile Include="Assets\Scripts\ItemLoot.cs" />
+     <Compile Include="Assets\Scripts\LootBeehive.cs" />
+     <Compile Include="Assets\Scripts\LootBerry.cs" />
+     <Compile Include="Assets\Scripts\LootPicnic.cs" />
+     <Compile Include="Assets\Scripts\MovementControllers\FoxController.cs" />
      <Compile Include="Assets\Scripts\PathGraph.cs" />
+     <Compile Include="Assets\Scripts\PicnicItems.cs" />
      <Compile Include="Assets\Scripts\PlayerAttributes.cs" />
      <Compile Include="Assets\Scripts\PlayerController.cs" />
      <Compile Include="Assets\Scripts\PlayerInventory.cs" />
      <Compile Include="Assets\Scripts\PlayerInventoryGUI.cs" />
      <Compile Include="Assets\Scripts\SaveGame.cs" />
+     <Compile Include="Assets\Scripts\Spawner.cs" />
      <Compile Include="Assets\Scripts\TerrainControl.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

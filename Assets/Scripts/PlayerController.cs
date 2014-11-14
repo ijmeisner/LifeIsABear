@@ -15,7 +15,7 @@ public class PlayerController : MonoBehaviour
 	// decide on stamina loss values
 	// fix being able to get stuck on side ***FIXED?
 	// sprint particles?
-
+	
 	// Public:
 	public float forwardSpeed; // 0.15 or so with translate
 	public float sideSpeed; // something like 1/3 forward speed
@@ -23,20 +23,21 @@ public class PlayerController : MonoBehaviour
 	public float jumpModifier; // 2500 or something with 10x grav
 	public float sprintModifier; // 1.75 or so
 	public Transform cameraTransform;
-	// -
 
+	public Transform m_playerTransform;
+	// -
+	
 	// Private:
-	private Transform m_playerTransform;
 	private Rigidbody m_playerRigidbody;
 	private PlayerAttributes m_playerAttributes;
-
+	
 	private float m_weightModifier;
 	private bool m_isSprinting;
 	private bool m_isGrounded;
 	private bool m_jump;
 	private RaycastHit m_objectHit;
 	// private float m_maxSlope;
-
+	
 	private Vector3 m_playerMovement;
 	private float m_moveX;
 	private float m_moveY;
@@ -45,14 +46,14 @@ public class PlayerController : MonoBehaviour
 	private float m_jumpTime;
 	private float m_sprintStamLoss;
 	private float m_jumpStamLoss;
-
+	
 	private int m_selectedAbility;
 	private int m_selectedItem;
 	private bool m_isAbility;
 	private int m_numAbilities; // number of different abilities for selection
 	private int m_numItems; // number of different abilities for selection
 	// -
-
+	
 	void Awake()
 	{
 		// m_maxSlope = 50.0f;
@@ -61,51 +62,63 @@ public class PlayerController : MonoBehaviour
 		m_numItems = 0;
 		m_numAbilities = 0;
 		m_jumpStamLoss = 4;
-		m_sprintStamLoss = 3;
+		m_sprintStamLoss = 2;
 		m_isSprinting = false;
-
+		
 		m_playerAttributes = GetComponent<PlayerAttributes>();
 		m_playerRigidbody = GetComponent<Rigidbody>();
 		m_playerTransform = GetComponent<Transform>();
 		m_weightModifier = m_playerRigidbody.mass;
-
+		
 		// Player doesn't fall onto side
 		m_playerRigidbody.centerOfMass = new Vector3(0.0f, -0.5f,0.0f);
 	}
-
+	
 	void FixedUpdate()
 	{
 		movePlayer();
-
+		
 		if(m_jump)
 		{
 			jumpPlayer();
 			m_jump = false;
 		}
 	}
-
+	
 	void Update()
 	{
 		// Movement Input
 		m_moveX = Input.GetAxis("Horizontal");
 		m_moveY = Input.GetAxis("Vertical");
-
+		
 		// Non-Movement Controls
 		getPlayerAction();
 	}
-
+	
 	// ---
 	// --------------------
 	// ---
-
+	
 	void getPlayerAction()
 	{
-		if(Input.GetKeyDown(KeyCode.LeftShift) && (m_playerAttributes.curEndurance > m_sprintStamLoss)) // Sprint
+		if(Input.GetKeyDown(KeyCode.LeftShift) && (m_playerAttributes.curEndurance > 0)) // Sprint
 		{
 			m_isSprinting = true;
 			StartCoroutine(cameraWobble());
+		}
+		if(Input.GetKey(KeyCode.LeftShift) && m_isSprinting && (m_playerAttributes.curEndurance > 0)) // Sprint
+		{
 			m_playerAttributes.curEndurance -= m_sprintStamLoss*Time.deltaTime;
 			Mathf.Clamp(m_playerAttributes.curEndurance, 0, Mathf.Infinity);
+		}
+
+		if(Input.GetKey(KeyCode.LeftControl))
+		{
+			Screen.showCursor = true;
+		}
+		if(Input.GetKeyUp(KeyCode.LeftControl))
+		{
+			Screen.showCursor = false;
 		}
 		
 		if(Input.GetKeyUp(KeyCode.LeftShift) || (m_playerAttributes.curEndurance <= 0)) // Stop Sprint
@@ -182,25 +195,25 @@ public class PlayerController : MonoBehaviour
 			}
 		}
 	}
-
+	
 	void movePlayer()
 	{
 		m_XModifier = 1;
 		m_YModifier = 1;
-
+		
 		if(m_isSprinting)
 		{
 			m_YModifier *= sprintModifier;
 		}
-
+		
 		m_XModifier *= sideSpeed / m_weightModifier;
 		m_YModifier *= forwardSpeed / m_weightModifier;
-
+		
 		if(m_moveY < 0)
 		{
 			m_YModifier /= backwardsModifier;
 		}
-
+		
 		m_playerMovement.Set(m_moveX * m_XModifier, 0.0f, m_moveY * m_YModifier);
 		
 		m_playerTransform.Translate(Vector3.ClampMagnitude(m_playerMovement, Mathf.Abs(m_YModifier)));
@@ -208,24 +221,24 @@ public class PlayerController : MonoBehaviour
 		//m_playerRigidbody.velocity = m_playerTransform.TransformDirection(Vector3.ClampMagnitude(m_playerMovement,
 		//                                                                                Mathf.Abs(m_YModifier)));
 	}
-
+	
 	void jumpPlayer()
 	{
 		m_playerRigidbody.AddRelativeForce(Vector3.up * jumpModifier * Physics.gravity.magnitude);
 		m_playerRigidbody.AddRelativeForce(Vector3.forward * jumpModifier * 9.81f);
 		m_playerAttributes.curEndurance -= m_sprintStamLoss;
 	}
-
+	
 	void useAbility(int ability)
 	{
 		return; // pending ability implementation
 	}
-
+	
 	void useItem(int item)
 	{
 		return; // pending item implementation
 	}
-
+	
 	void playerAttack()
 	{
 		// Swipe animation or however visual is wanted
@@ -242,39 +255,39 @@ public class PlayerController : MonoBehaviour
 			}
 		}
 	}
-
+	
 	// ---
 	// --------------------
 	// ---
-
+	
 	void OnCollisionStay(Collision collision)
 	{
 		m_isGrounded = true;
 	}
-
+	
 	void OnCollisionExit()
 	{
 		m_isGrounded = false;
 	}
-
+	
 	IEnumerator cameraWobble()
 	{
 		float wobbleModifier = 0.3f;
 		float wobbleSpeed = 0.2f;
 		// float timeChange;
-
+		
 		cameraTransform.Rotate(Vector3.forward * -wobbleModifier/2);
 		yield return new WaitForSeconds(wobbleSpeed);
 		while(m_isSprinting)
 		{
 			cameraTransform.Rotate(Vector3.forward * wobbleModifier);
 			yield return new WaitForSeconds(wobbleSpeed);
-
+			
 			cameraTransform.Rotate(Vector3.forward * -wobbleModifier);
 			yield return new WaitForSeconds(wobbleSpeed);
 		}
 		cameraTransform.Rotate(Vector3.forward * wobbleModifier/2);
-
+		
 		// Prevents camera from staying centered
 		/*
 		 timeChange = 0.0f;

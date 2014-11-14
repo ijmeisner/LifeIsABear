@@ -1,51 +1,51 @@
-﻿//
-// Game Controller
-// MAKE SURE THIS SCRIPT IS ORDERED LAST SO THAT SAVE DATA IS LOADED CORRECTLY
-//
-
-using UnityEngine;
+﻿﻿//
+	// Game Controller
+	// MAKE SURE THIS SCRIPT IS ORDERED LAST SO THAT SAVE DATA IS LOADED CORRECTLY
+	//
+	
+	using UnityEngine;
 using System.Collections;
 
 public class GameController : MonoBehaviour {
-
+	
 	// TODO
 	// Add Menu and remove Application.Quit in Update once menu is added
 	// have weather transition and make sky more gray
 	// add sunset/sunrise tint maybe?
 	// make particle system created by script instead of using from within editor if possible, but don't know how to yet
 	// add actual sun and mooon images
-
+	
 	// Public:
 	public Transform sunLight;
 	public Transform moonLight;
 	public Camera playerCamera;
 	public float dayNightSpeed; // number of times faster than real life
-
+	
 	public float weatherLength; // how long a weather condition will last at minimum
 	public float noWeatherLength; // how long a weather condition must have to wait to occur at minimum
 	public float weatherStartChance; // 0-1, lower is less likely, chance to happen in each 30 seconds
 	public float weatherStopChance; // 0-1, lower is less likely, chance to happen each 30 seconds
 	// -
-
+	
 	// Public Static:
 	public static bool isDay;
 	// -
-
+	
 	void Start()
 	{
 		// Attempt to cap framerate
 		Application.targetFrameRate = 60;
 		// Don't show mouse cursor
 		Screen.showCursor = false;
-
+		
 		isDay = true;
 		StartCoroutine(dayNight());
 		StartCoroutine(weather());
-
+		
 		// If gamecontroller isn't loaded last, save data might be overwritten by instantiations
 		SaveGame.load();
 	}
-
+	
 	void Update()
 	{
 		if(Input.GetKeyDown(KeyCode.Escape)) // remove this when menu to quit with is added
@@ -53,24 +53,24 @@ public class GameController : MonoBehaviour {
 			Application.Quit();
 		}
 	}
-
+	
 	void OnApplicationQuit()
 	{
 		// SAVE on exit
 		SaveGame.save();
 	}
-
+	
 	// ---
 	// --------------------
 	// ---
-
+	
 	public static IEnumerator animDestroy(Object destroyObj, float destroyTime) // destroy object after animation
 	{
 		// play animation with destroyTime length
 		yield return new WaitForSeconds(destroyTime);
 		Destroy(destroyObj);
 	}
-
+	
 	public IEnumerator dayNight()
 	{
 		float updateSpeed = 0.1f; // how many seconds before update
@@ -80,7 +80,7 @@ public class GameController : MonoBehaviour {
 		float deltaSunLight = deltaAngle/500;
 		float deltaMoonLight = deltaAngle/1500;
 		Color defaultSkyColor = new Color(100.0f/255.0f, 155.0f/255.0f, 225.0f/255.0f);
-
+		
 		while(true)
 		{
 			sunLight.Rotate(Vector3.right*deltaAngle);
@@ -116,25 +116,25 @@ public class GameController : MonoBehaviour {
 			yield return new WaitForSeconds(updateSpeed);
 		}
 	}
-
+	
 	public IEnumerator weather()
 	{
 		// declare particle system here if possible
-
+		
 		yield return new WaitForSeconds(noWeatherLength);
 		while(true)
 		{
 			float timeChange;
 			float startIntensity;
-
+			
 			// Decide if a weather happens
 			while(Random.Range(0.0f, 1.0f)>(weatherStartChance))
 			{
 				yield return new WaitForSeconds(30); // random should be framerate independant
 			}
-
+			
 			playerCamera.particleSystem.Play();
-
+			
 			timeChange = 0.0f;
 			startIntensity = sunLight.light.intensity;
 			// light dims when storm comes
@@ -147,18 +147,18 @@ public class GameController : MonoBehaviour {
 				// gradually increase particle count here
 				yield return null;
 			}
-
+			
 			// wait for weather to end
 			yield return new WaitForSeconds(weatherLength);
-
+			
 			// weather can last variable amount of time
 			while(Random.Range(0.0f, 1.0f)>(weatherStopChance))
 			{
 				yield return new WaitForSeconds(30);
 			}
-
+			
 			playerCamera.particleSystem.Stop();
-
+			
 			// wait until weather is allowed
 			timeChange = 0.0f;
 			startIntensity = sunLight.light.intensity;

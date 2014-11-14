@@ -1,0 +1,30 @@
+Initialize engine version: 4.5.5f1 (7684ad0c5a44)
+GfxDevice: creating device client; threaded=1
+Direct3D:
+    Version:  Direct3D 11.0 [level 11.0]
+    Renderer: AMD Radeon HD 6620G (ID=0x9641)
+    Vendor:   ATI
+    VRAM:     1507 MB
+Begin MonoManager ReloadAssembly
+Platform assembly: C:\Users\Alex\Documents\Unity\LifeIsABear\LifeIsABear_Data\Managed\UnityEngine.dll (this message is harmless)
+Loading C:\Users\Alex\Documents\Unity\LifeIsABear\LifeIsABear_Data\Managed\UnityEngine.dll into Unity Child Domain
+Platform assembly: C:\Users\Alex\Documents\Unity\LifeIsABear\LifeIsABear_Data\Managed\Assembly-CSharp.dll (this message is harmless)
+Loading C:\Users\Alex\Documents\Unity\LifeIsABear\LifeIsABear_Data\Managed\Assembly-CSharp.dll into Unity Child Domain
+- Completed reload, in  0.637 seconds
+desktop: 1366x768 60Hz; virtual: 1366x768 at 0,0
+<RI> Initializing input.
+<RI> Input initialized.
+WARNING: Shader Unsupported: 'Hidden/Nature/Tree Creator Leaves Optimized' - Pass '' shader state not supported
+WARNING: Shader Unsupported: 'Hidden/TerrainEngine/Details/BillboardWavingDoublePass' - Pass '' shader state not supported
+No saved data found
+ 
+(Filename: C:/BuildAgent/work/d63dfc6385190b60/artifacts/StandalonePlayerGenerated/UnityEngineDebug.cpp Line: 49)
+
+C:/Users/Alex/AppData/LocalLow/DefaultCompany/LifeIsABear
+ 
+(Filename: C:/BuildAgent/work/d63dfc6385190b60/artifacts/StandalonePlayerGenerated/UnityEngineDebug.cpp Line: 49)
+
+Data Saved, hopefully
+ 
+(Filename: C:/BuildAgent/work/d63dfc6385190b60/artifacts/StandalonePlayerGenerated/UnityEngineDebug.cpp Line: 49)
+

@@ -20,13 +20,13 @@ public class PlayerAttributes : MonoBehaviour {
 	public enum hungerLevel{happy, starving, chubby};	// Levels of hunger 
 	
 	
-	void Awake() {
+	void Start() {
 		health = 10.0f;
 		curHealth = health;
-		endurance = 5.0f;
+		endurance = 10.0f;
 
 		curEndurance = endurance;
-		regeneration = 1.5f;
+		regeneration = 1.0f;
 
 		strength = 2.0f;
 		attRange = 2.5f;
@@ -43,6 +43,18 @@ public class PlayerAttributes : MonoBehaviour {
 		EnergyRegen();
 		Health ();
 
+		// Test for upper or lower boundaries.
+		if (Input.GetKeyDown (KeyCode.H)) {
+			curHealth -= 1;
+		}
+		// Test for upper or lower boundaries.
+		if (Input.GetKeyDown (KeyCode.E)) {
+			curEndurance -= 1;
+		}
+		// Test for upper or lower boundaries.
+		if (Input.GetKeyDown (KeyCode.L)) {
+			curExp += 1;
+		}
 	}
 
 	//-----------------------------------------------------
@@ -103,9 +115,11 @@ public class PlayerAttributes : MonoBehaviour {
 	void OnGUI()
 	{
 		GUI.Box(new Rect(20, 30, 200, 20), "Level: " + curLevel);
+		GUI.Box(new Rect(20, 50, 200, 20), "Exp: " + curExp + " / " + maxExp);
 		GUI.Box(new Rect(20, 70, 200, 20), "Health: " + curHealth + " / " + health);
 		GUI.Box(new Rect(20, 90, 200, 20), "Stam: " + curEndurance + " / " + endurance);
-		GUI.Box(new Rect(20, 50, 200, 20), "Exp: " + curExp + " / " + maxExp);
+		GUI.Box(new Rect(20, 110, 200, 20), "Strength: " + strength);
+		
 	}
 	
 }
