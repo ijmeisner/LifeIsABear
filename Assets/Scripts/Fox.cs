@@ -1,85 +1,56 @@
 ﻿using UnityEngine;
 using System.Collections;
+// Make a formula for the velocity in relation to how close to next goal the character is.
+public class Fox : MonoBehaviour, IAiAgent {
 
-public class Fox : MonoBehaviour {
+  AIType              aiType;
+  IAiPackage          aiPackage;
+  Rigidbody           body;
+  IMovementController movementController;
+  Vector3             position;
+  MeshRenderer        mesh;
 
-	AnimalAI     aiPackage;
-	Vector3      directionFacing;
-	Vector3      difference;
-	Vector2[]    path;
-	int          currentPathIndex;
-	int          pathMaxIndex;
-	float        moveSpeed; // Some default value based on animal and state of being (fleeing, hiding, etc)
-	MeshRenderer mesh;
-	Rigidbody    body;
-	float        epsilon; // How close to center of cell before it is counted as being there
+  Fox()
+  {
+    aiType = AIType.FOX;
+  }
 
-	// Use this for initialization
-	void Awake()
-	{
-		// make mesh, collider, animation data, etc
-		aiPackage = ScriptableObject.CreateInstance<AnimalAI> ();
-		moveSpeed = 55.0f;
-		body = GetComponent<Rigidbody> ();
-		currentPathIndex = 0;
-		epsilon = 0.2f;
-		path = null;
-	}
-	
-	// Update is called once per frame
-	void FixedUpdate () // TODO: selection of new paths that are in the path graph
-					// TODO: include logic into the new paths and when they are chosen and the speed at which traversed.
-	{
-		if( path != null )
-		{
-			if( Vector3.Magnitude (difference) > epsilon )
-			{
-				body.AddForce ( directionFacing*moveSpeed*Time.deltaTime );
-				difference.x = path[currentPathIndex].x - this.transform.position.x;
-				difference.z = path[currentPathIndex].y - this.transform.position.z;
-			}
-			else
-			{
-				currentPathIndex++;
-				if( currentPathIndex < pathMaxIndex-1 )
-				{
-					directionFacing.x = path[currentPathIndex].x - this.transform.position.x;
-					directionFacing.z = path[currentPathIndex].y - this.transform.position.z;
-					directionFacing.y = 0.5f;
-					difference = directionFacing;
-					Vector3.Normalize (directionFacing);
-					body.AddForce ( directionFacing*moveSpeed*Time.deltaTime );
-				}
-				else
-				{
-					path = null;
-					currentPathIndex = 0;
+  public Vector3 GetPosition()
+  {
+    return position;
+  }
+  public AIType GetAIType()
+  {
+    return aiType;
+  }
+  // Use this for initialization
+  void Awake()
+  {
+    // make mesh, collider, animation data, etc
+    MovementControllerFactory movementControllerFactory = MovementControllerFactory.GetInstance ();
+    aiPackage = gameObject.AddComponent<FoxAi>(); // REPLACE WITH FACTORY!!!!
+    movementController = movementControllerFactory.CreateController( AIType.FOX );
+    mesh = GetComponent<MeshRenderer>(); // eventually change to add component and get rid of the mesh on the prefab
+    body = GetComponent<Rigidbody>();
+    movementController.LinkToAgent ( body, mesh );
+    aiPackage.Initialize ( body, movementController );
+  }
 
-				}
-			}
-		}
-		else
-		{
-			path = aiPackage.pathSelect ( gameObject.transform.position );
-			if(path != null)
-			{
-				pathMaxIndex = path.Length;
-				// DEBUG
-				for( int i = 0; i< pathMaxIndex; i ++)
-				{
-					Debug.Log ( " path[" + i + "]:" + path[i].x + " " + path[i].y );
-				}
-				// END DEBUG
-				directionFacing.x = path[currentPathIndex].x - this.transform.position.x;
-				directionFacing.z = path[currentPathIndex].y - this.transform.position.z;
-				directionFacing.y = 0.5f;
-				difference = directionFacing;
-				Vector3.Normalize (directionFacing);
-			}
-			else
-			{
-				Debug.Log ( " Null Path!!" );
-			}
-		}
-	}
+  void Update()
+  {
+    position = gameObject.transform.position;
+    aiPackage.Think ();
+  }
+  void FixedUpdate()
+  {
+    movementController.MoveToGoal ();
+  }
+  // Update is called once per frame
+  public void Live () // TODO: selection of new paths that are in the path graph
+          // TODO: include logic into the new paths and when they are chosen and the speed at which traversed.
+  {
+    position = gameObject.transform.position;
+    aiPackage.Think ();
+    movementController.MoveToGoal ();
+  }
 }
